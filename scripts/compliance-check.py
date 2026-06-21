@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
 scripts/compliance-check.py
-发布前合规检查（自动化勾选 14 项 + PASS/FAIL）
+发布前合规检查（自动化勾选 15 项 + PASS/FAIL）
 
 用法：
   python3 compliance-check.py <slug>              # 检查单篇
   python3 compliance-check.py --all               # 检查 drafts/posts/ 下所有草稿
   python3 compliance-check.py <slug> --strict     # 任何 FAIL 直接 exit 1
 
-检查清单来源：templates/compliance/checklist.md（v3 · 14 项 · 唯一权威）
+检查清单来源：templates/compliance/checklist.md（v3 · 15 项 · 唯一权威）
 本脚本必须与 checklist.md 保持一致；如修改清单，请同步修改本脚本。
 
 设计原则：
@@ -76,7 +76,7 @@ def read_article(path: Path) -> str:
 
 
 # ─────────────────────────────────────────────
-# 14 项检查函数
+# 15 项检查函数
 # ─────────────────────────────────────────────
 
 def check_1_title(content: str, slug: str) -> Tuple[str, str]:
@@ -324,6 +324,29 @@ def check_14_tracking(content: str, slug: str, strict_path: bool = False) -> Tup
     return 'PASS', f'tracking 已写入({n} 条预测)'
 
 
+def check_15_quote_citations(content: str, slug: str) -> Tuple[str, str]:
+    """C15. 访谈类文章必须有引用块(≥ 10 个)+ 中英对照标识(仅对带 interview: frontmatter 的文章启用)"""
+    # 仅对带 interview: frontmatter 的文章启用
+    if 'interview:' not in content[:1000]:
+        return 'PASS', '非访谈类文章,跳过 A15'
+
+    en_blocks = len(re.findall(r'🇺🇸 \*\*\[EN\]\*\*', content))
+    cn_blocks = len(re.findall(r'🇨🇳 \*\*\[CN\]\*\*', content))
+    citation_lines = len(re.findall(r'^\s*> \*\*访谈引用', content, re.MULTILINE))
+
+    issues = []
+    if citation_lines < 10:
+        issues.append(f'引用块仅 {citation_lines} 个,需 ≥ 10 个')
+    if en_blocks != cn_blocks:
+        issues.append(f'🇺🇸 EN {en_blocks} 个 vs 🇨🇳 CN {cn_blocks} 个,不平衡')
+    if en_blocks < 5 or cn_blocks < 5:
+        issues.append(f'中英对照标识不足(EN {en_blocks} / CN {cn_blocks},各需 ≥ 5)')
+
+    if issues:
+        return 'FAIL', '; '.join(issues)
+    return 'PASS', f'引用块 {citation_lines} 个 + 中英对照 EN/CN 各 {en_blocks}/{cn_blocks}'
+
+
 # ─────────────────────────────────────────────
 # 主入口
 # ─────────────────────────────────────────────
@@ -343,11 +366,12 @@ CHECKS = [
     ('B12', '短期判断时间窗口', check_12_time_window),
     ('B13', '升降级信号齐全', check_13_signals),
     ('B14', 'tracking 记录已写入', check_14_tracking),
+    ('C15', '访谈引用块 + 中英对照(仅 interview: 启用)', check_15_quote_citations),
 ]
 
 
 def run_checks(slug: str, content: str, strict: bool = False) -> List[Tuple[str, str, str, str]]:
-    """对单篇文章跑 14 项检查。返回 [(编号, 名称, 状态, 说明), ...]"""
+    """对单篇文章跑 15 项检查。返回 [(编号, 名称, 状态, 说明), ...]"""
     results = []
     for code, name, fn in CHECKS:
         try:
@@ -385,7 +409,7 @@ def print_report(slug: str, results: List[Tuple[str, str, str, str]]) -> bool:
     if warn > 0:
         print(f'  ⚠️  **可发布但有风险**:有 {warn} 项 WARN,建议尽快修复。')
     else:
-        print(f'  🎉 **可发布**:14/14 全部 PASS。')
+        print(f'  🎉 **可发布**:15/15 全部 PASS。')
     return True
 
 
@@ -418,7 +442,7 @@ def check_all(strict: bool = False) -> int:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='发布前合规检查(自动化 14 项 + PASS/FAIL)')
+    parser = argparse.ArgumentParser(description='发布前合规检查(自动化 15 项 + PASS/FAIL)')
     parser.add_argument('slug', nargs='?', help='文章 slug,如 asean-ai-supply-chain')
     parser.add_argument('--all', action='store_true', help='检查 drafts/posts/ 下所有草稿')
     parser.add_argument('--strict', action='store_true', help='任意 FAIL 直接 exit 1')
