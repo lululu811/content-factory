@@ -1,0 +1,37 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# 运行时产物(每次跑都重新生成)
+logs/
+*.log
+
+# 发布包构建产物(matplotlib PNG + mmx 封面 + publish 目录)
+# 7.2 MB,源稿在 drafts/,其他人 clone 后自己跑 publish.sh 生成
+publish/images/
+publish/final/
+publish/*.log
+
+# 但 tracking/reports/ 要保留(战绩表 + 季度日志是历史沉淀)
+# 同理 archives/ 也保留
+!tracking/reports/
+!archives/
+
+# 临时文件
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# 环境/凭证(如果以后加)
+.env
+.env.local
