@@ -1,0 +1,117 @@
+{
+  "slug": "ai-three-bottlenecks",
+  "title": "AI 算力三大瓶颈的真相",
+  "published_at": "2026-06-21",
+  "created_at": "2026-06-21T22:24:06.521568",
+  "predictions": [
+    {
+      "id": "UP-01",
+      "statement": "氦气价格 2026 H2 突破 30% 涨幅: （Federal Helium Reserve 关闭后供应紧张）",
+      "type": "升级信号",
+      "direction": "up",
+      "source": "文章升级信号段落",
+      "verify_at": "2026-12-18",
+      "actual": null,
+      "verified": null,
+      "verified_at": null,
+      "notes": ""
+    },
+    {
+      "id": "UP-02",
+      "statement": "Air Products / Linde 氦气业务 2026 年报同比 +30%+",
+      "type": "升级信号",
+      "direction": "up",
+      "source": "文章升级信号段落",
+      "verify_at": "2026-12-18",
+      "actual": null,
+      "verified": null,
+      "verified_at": null,
+      "notes": ""
+    },
+    {
+      "id": "UP-03",
+      "statement": "HBM 终端需求 2026 年达 329 亿 Gb（UBS 预测兑现）",
+      "type": "升级信号",
+      "direction": "up",
+      "source": "文章升级信号段落",
+      "verify_at": "2026-12-18",
+      "actual": null,
+      "verified": null,
+      "verified_at": null,
+      "notes": ""
+    },
+    {
+      "id": "UP-04",
+      "statement": "三星 HBM4 2026 Q1 出货 NVIDIA（韩国媒体报道确认）",
+      "type": "升级信号",
+      "direction": "up",
+      "source": "文章升级信号段落",
+      "verify_at": "2026-12-18",
+      "actual": null,
+      "verified": null,
+      "verified_at": null,
+      "notes": ""
+    },
+    {
+      "id": "UP-05",
+      "statement": "长鑫存储 CXMT 宣布 DDR5 HBM 量产",
+      "type": "升级信号",
+      "direction": "up",
+      "source": "文章升级信号段落",
+      "verify_at": "2026-12-18",
+      "actual": null,
+      "verified": null,
+      "verified_at": null,
+      "notes": ""
+    },
+    {
+      "id": "DOWN-01",
+      "statement": "俄罗斯 Amur Gas Processing Plant 全面恢复供应: （氦气供应宽松）",
+      "type": "降级信号",
+      "direction": "down",
+      "source": "文章降级信号段落",
+      "verify_at": "2026-12-18",
+      "actual": null,
+      "verified": null,
+      "verified_at": null,
+      "notes": ""
+    },
+    {
+      "id": "DOWN-02",
+      "statement": "HBM4 良率提升至 80%+: （卡点消失）",
+      "type": "降级信号",
+      "direction": "down",
+      "source": "文章降级信号段落",
+      "verify_at": "2026-12-18",
+      "actual": null,
+      "verified": null,
+      "verified_at": null,
+      "notes": ""
+    },
+    {
+      "id": "DOWN-03",
+      "statement": "NVIDIA 调整 HBM 需求（用 GPU 替代 HBM）",
+      "type": "降级信号",
+      "direction": "down",
+      "source": "文章降级信号段落",
+      "verify_at": "2026-12-18",
+      "actual": null,
+      "verified": null,
+      "verified_at": null,
+      "notes": ""
+    },
+    {
+      "id": "DOWN-04",
+      "statement": "中国 CXMT HBM 突破 5 年内量产",
+      "type": "降级信号",
+      "direction": "down",
+      "source": "文章降级信号段落",
+      "verify_at": "2026-12-18",
+      "actual": null,
+      "verified": null,
+      "verified_at": null,
+      "notes": ""
+    }
+  ],
+  "verification_log": []
+}
