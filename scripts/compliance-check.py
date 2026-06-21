@@ -88,7 +88,7 @@ def check_1_title(content: str, slug: str) -> Tuple[str, str]:
     if len(title) > MAX_TITLE_CHARS:
         return 'FAIL', f'标题 {len(title)} 字,超过 30 字限制: {title!r}'
     # 反共识钩子关键词(任一即可)
-    hooks = ['反共识', '真实', '未必', '不是', '别再', '误区', '陷阱', '意外', '错位',
+    hooks = ['反共识', '真实', '未必', '不是', '不在', '别再', '误区', '陷阱', '意外', '错位',
              '低估', '高估', '误读', '错判', '假的', '真的', '真相', '残酷', '清醒']
     if not any(h in title for h in hooks):
         return 'WARN', f'标题缺少反共识钩子关键词(建议加: {hooks[:3]})'
@@ -171,8 +171,8 @@ def check_4_top7(content: str, slug: str) -> Tuple[str, str]:
     if missing:
         return 'FAIL', f'Top 7 缺 5 要素: {missing}'
 
-    # 数候选数(🥇 #N / 🥈 #N / 候选)
-    candidates = re.findall(r'[🥇🥈🥉]\s*#\s*(\d+)', section)
+    # 数候选数(🥇 #N / 🥈 #N / 🥉 #N / 纯 #N 都要匹配)
+    candidates = re.findall(r'(?:[🥇🥈🥉]\s*)?#\s*(\d+)\b', section)
     if candidates:
         n = max(int(c) for c in candidates)
         if n < MIN_TOP7:
