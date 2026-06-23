@@ -25,34 +25,137 @@ def parse_pool():
     """从 markdown 池子文件解析"""
     if not POOL_FILE.exists():
         return {}
-    content = POOL_FILE.read_text()
+    content = POOL_FILE.read_text(encoding='utf-8')
     pool = {}
 
     current_moc = None
-    current_section = None
     for line in content.split('\n'):
         if line.startswith('### '):
             current_moc = line[4:].strip()
-            pool[current_moc] = {'moc': current_moc, 'topics': [], 'published': [], 'pending': []}
+            pool[current_moc] = {'moc': current_moc, 'published': [], 'pending': []}
         elif current_moc:
-            # 解析 - [ ] 选题
-            m = re.match(r'^\s*- \[ \] \*\*([^*]+)\*\*[:：]?\s*(.*)$', line)
-            if m:
+            # 1. 解析待写选题，支持识别优先级后缀如 **Title [high]** 或 **Title (low)**
+            m_pending = re.match(r'^\s*- \[ \]\s*\*\*([^*]+)\*\*[:：]?\s*(.*)$', line)
+            if m_pending:
+                title_part = m_pending.group(1).strip()
+                notes_part = m_pending.group(2).strip()
+                
+                # 从标题部分中尝试提取优先级 [high]/[low]/(high)/(low)
+                priority = 'medium'
+                priority_match = re.search(r'\s*[\[(](high|medium|low)[\])]$', title_part, re.IGNORECASE)
+                if priority_match:
+                    priority = priority_match.group(1).lower()
+                    title_part = title_part[:priority_match.start()].strip()
+                    
                 pool[current_moc]['pending'].append({
-                    'title': m.group(1).strip(),
-                    'notes': m.group(2).strip(),
-                    'priority': 'medium',
+                    'title': title_part,
+                    'notes': notes_part,
+                    'priority': priority,
                     'added_at': datetime.now().isoformat()
                 })
-            # 解析 ✅ 已发布
-            m = re.match(r'^\s*- \[x\] \*\*([^*]+)\*\*.*$', line, re.IGNORECASE)
-            if m:
+                continue
+            
+            # 2. 解析已发布选题 (可能是行内形式，也可能是列表形式)
+            # 行内形式如: **已发布**：✅ 2026-06-20：摩根士丹利东盟峰会...
+            if '**已发布**' in line and any(sym in line for sym in ['✅', '[x]', '[X]']):
+                m_inline = re.search(r'(?:✅|\[x\]|\[X\])\s*(?:(\d{4}-\d{2}-\d{2})[：:]\s*)?(.*)$', line)
+                if m_inline:
+                    date_str = m_inline.group(1) or datetime.now().strftime('%Y-%m-%d')
+                    title_text = m_inline.group(2).strip()
+                    
+                    slug = ""
+                    slug_match = re.search(r'[\s（(]([a-zA-Z0-9_-]+)[\s）)]$', title_text)
+                    if slug_match:
+                        slug = slug_match.group(1)
+                        title_text = title_text[:slug_match.start()].strip()
+                        
+                    pool[current_moc]['published'].append({
+                        'title': title_text,
+                        'completed_at': date_str,
+                        'article_slug': slug
+                    })
+                continue
+
+            # 列表形式如: - ✅ 2026-06-20：摩根士丹利东盟峰会...
+            m_list_pub = re.match(r'^\s*-\s*(?:✅|\[x\]|\[X\])\s*(?:(\d{4}-\d{2}-\d{2})[：:]\s*)?(.*)$', line)
+            if m_list_pub:
+                date_str = m_list_pub.group(1) or datetime.now().strftime('%Y-%m-%d')
+                title_text = m_list_pub.group(2).strip()
+                
+                slug = ""
+                slug_match = re.search(r'[\s（(]([a-zA-Z0-9_-]+)[\s）)]$', title_text)
+                if slug_match:
+                    slug = slug_match.group(1)
+                    title_text = title_text[:slug_match.start()].strip()
+                
                 pool[current_moc]['published'].append({
-                    'title': m.group(1).strip(),
-                    'completed_at': datetime.now().isoformat()
+                    'title': title_text,
+                    'completed_at': date_str,
+                    'article_slug': slug
                 })
 
     return pool
+
+
+def save_pool(pool):
+    """将选题池更新回 topics-pool.md 文件中的特定区域"""
+    if not POOL_FILE.exists():
+        print(f"❌ 选题池文件不存在：{POOL_FILE}")
+        return
+
+    content = POOL_FILE.read_text(encoding='utf-8')
+    
+    start_match = re.search(r'^## 一、当前选题池（按 MOC 分组）', content, re.MULTILINE)
+    if not start_match:
+        print("❌ 无法在 topics-pool.md 中定位'## 一、当前选题池（按 MOC 分组）'")
+        return
+
+    end_match = re.search(r'^## 二、选题池管理脚本', content, re.MULTILINE)
+    if not end_match:
+        next_headings = list(re.finditer(r'^## ', content, re.MULTILINE))
+        for h in next_headings:
+            if h.start() > start_match.end():
+                end_match = h
+                break
+                
+    if not end_match:
+        print("❌ 无法在 topics-pool.md 中定位下一章节标题")
+        return
+
+    header_part = content[:start_match.start()]
+    footer_part = content[end_match.start():]
+
+    pool_lines = ["## 一、当前选题池（按 MOC 分组）\n"]
+    for moc_name, data in pool.items():
+        pool_lines.append(f"### {moc_name}\n")
+        
+        # 已发布
+        pool_lines.append("**已发布**：")
+        if data.get('published'):
+            pool_lines.append("")
+            for p in data['published']:
+                slug_str = f" ({p['article_slug']})" if p.get('article_slug') else ""
+                pool_lines.append(f"- ✅ {p['completed_at']}：{p['title']}{slug_str}")
+        else:
+            pool_lines[-1] += "无"
+        pool_lines.append("")
+        
+        # 待写
+        pool_lines.append("**待写**：")
+        if data.get('pending'):
+            pool_lines.append("")
+            for p in data['pending']:
+                priority_str = f" [{p['priority']}]" if p.get('priority') and p['priority'] != 'medium' else ""
+                notes_str = f"：{p['notes']}" if p.get('notes') else ""
+                pool_lines.append(f"- [ ] **{p['title']}{priority_str}**{notes_str}")
+        else:
+            pool_lines[-1] += "无"
+        pool_lines.append("")
+
+    pool_content = "\n".join(pool_lines) + "\n"
+    new_content = header_part + pool_content + footer_part
+    POOL_FILE.write_text(new_content, encoding='utf-8')
+    print(f"💾 已成功将选题池保存到 {POOL_FILE}")
 
 
 def cmd_list(args):
@@ -71,28 +174,30 @@ def cmd_list(args):
 def cmd_add(args):
     pool = parse_pool()
     if args.moc not in pool:
-        pool[args.moc] = {'moc': args.moc, 'topics': [], 'pending': []}
+        pool[args.moc] = {'moc': args.moc, 'published': [], 'pending': []}
     pool[args.moc]['pending'].append({
         'title': args.title,
         'notes': args.notes or '',
         'priority': args.priority or 'medium',
         'added_at': datetime.now().isoformat()
     })
+    save_pool(pool)
     print(f"✅ 已添加到 {args.moc}: {args.title}")
 
 
 def cmd_mark_done(args):
     pool = parse_pool()
     for moc, data in pool.items():
-        data['pending'] = [t for t in data['pending'] if t['title'] != args.title]
-        if any(t['title'] == args.title for t in data.get('pending', [])):
-            continue
-        if not any(p['title'] == args.title for p in data.get('published', [])):
-            data.setdefault('published', []).append({
-                'title': args.title,
-                'article_slug': args.article_slug or '',
-                'completed_at': datetime.now().isoformat()
-            })
+        pending_titles = [t['title'] for t in data.get('pending', [])]
+        if args.title in pending_titles:
+            data['pending'] = [t for t in data['pending'] if t['title'] != args.title]
+            if not any(p['title'] == args.title for p in data.get('published', [])):
+                data.setdefault('published', []).append({
+                    'title': args.title,
+                    'article_slug': args.article_slug or '',
+                    'completed_at': datetime.now().strftime('%Y-%m-%d')
+                })
+            save_pool(pool)
             print(f"✅ {args.title} → 已发布（{args.article_slug or '未指定 slug'}）")
             return
     print(f"⚠️ 未找到选题：{args.title}")

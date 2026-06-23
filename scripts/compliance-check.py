@@ -309,10 +309,12 @@ def check_13_signals(content: str, slug: str) -> Tuple[str, str]:
     return 'PASS', f'升级 {up_count} 条 + 降级 {down_count} 条'
 
 
-def check_14_tracking(content: str, slug: str, strict_path: bool = False) -> Tuple[str, str]:
+def check_14_tracking(content: str, slug: str, strict_path: bool = False, pre_publish: bool = False) -> Tuple[str, str]:
     """B14. tracking/predictions/{slug}.json 已写入(发布后)"""
     pred_path = TRACKING_PREDS / f'{slug}.json'
     if not pred_path.exists():
+        if pre_publish:
+            return 'WARN', f'tracking/predictions/{slug}.json 不存在（这是发布前校验，发布脚本会自动创建它）'
         if strict_path:
             return 'FAIL', f'tracking/predictions/{slug}.json 不存在。发布后请跑: python3 scripts/tracking-record.py add {slug}'
         return 'WARN', f'tracking/predictions/{slug}.json 不存在(发布后会自动跑)'
@@ -370,13 +372,13 @@ CHECKS = [
 ]
 
 
-def run_checks(slug: str, content: str, strict: bool = False) -> List[Tuple[str, str, str, str]]:
+def run_checks(slug: str, content: str, strict: bool = False, pre_publish: bool = False) -> List[Tuple[str, str, str, str]]:
     """对单篇文章跑 15 项检查。返回 [(编号, 名称, 状态, 说明), ...]"""
     results = []
     for code, name, fn in CHECKS:
         try:
             if fn == check_14_tracking:
-                status, msg = fn(content, slug, strict_path=strict)
+                status, msg = fn(content, slug, strict_path=strict, pre_publish=pre_publish)
             else:
                 status, msg = fn(content, slug)
         except Exception as e:
@@ -413,17 +415,17 @@ def print_report(slug: str, results: List[Tuple[str, str, str, str]]) -> bool:
     return True
 
 
-def check_one(slug: str, strict: bool = False) -> bool:
+def check_one(slug: str, strict: bool = False, pre_publish: bool = False) -> bool:
     path = find_article(slug)
     if not path:
         print(f'❌ 找不到文章: drafts/posts/{slug}.md 或 publish/final/{slug}/{slug}.md')
         return False
     content = read_article(path)
-    results = run_checks(slug, content, strict=strict)
+    results = run_checks(slug, content, strict=strict, pre_publish=pre_publish)
     return print_report(slug, results)
 
 
-def check_all(strict: bool = False) -> int:
+def check_all(strict: bool = False, pre_publish: bool = False) -> int:
     """检查 drafts/posts/ 下所有 .md 文件。返回 PASS 数。"""
     drafts = sorted(DRAFTS_POSTS.glob('*.md'))
     if not drafts:
@@ -433,7 +435,7 @@ def check_all(strict: bool = False) -> int:
     for draft in drafts:
         slug = draft.stem
         content = draft.read_text(encoding='utf-8')
-        results = run_checks(slug, content, strict=strict)
+        results = run_checks(slug, content, strict=strict, pre_publish=pre_publish)
         if print_report(slug, results):
             passed += 1
         print()
@@ -446,6 +448,7 @@ def main():
     parser.add_argument('slug', nargs='?', help='文章 slug,如 asean-ai-supply-chain')
     parser.add_argument('--all', action='store_true', help='检查 drafts/posts/ 下所有草稿')
     parser.add_argument('--strict', action='store_true', help='任意 FAIL 直接 exit 1')
+    parser.add_argument('--pre-publish', action='store_true', help='发布前校验，将 B14 跟踪记录检查降级为 WARN')
     parser.add_argument('--json', action='store_true', help='输出 JSON 格式(供其他脚本消费)')
 
     args = parser.parse_args()
@@ -455,10 +458,10 @@ def main():
         sys.exit(1)
 
     if args.all:
-        passed = check_all(strict=args.strict)
+        passed = check_all(strict=args.strict, pre_publish=args.pre_publish)
         sys.exit(0 if passed >= 0 else 1)
 
-    ok = check_one(args.slug, strict=args.strict)
+    ok = check_one(args.slug, strict=args.strict, pre_publish=args.pre_publish)
     sys.exit(0 if ok or not args.strict else 1)
 
 

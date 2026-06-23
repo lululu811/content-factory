@@ -25,9 +25,9 @@ echo "════════════════════════�
 
 # 0. 发布前合规检查(v3 · 14 项 + --strict:任意 FAIL exit 1)
 if [ -f "$WORKDIR/scripts/compliance-check.py" ]; then
-    if ! python3 "$WORKDIR/scripts/compliance-check.py" "$SLUG" --strict > /dev/null 2>&1; then
+    if ! python3 "$WORKDIR/scripts/compliance-check.py" "$SLUG" --strict --pre-publish > /dev/null 2>&1; then
         echo "❌ 合规检查未通过,请修复后再发布:"
-        python3 "$WORKDIR/scripts/compliance-check.py" "$SLUG"
+        python3 "$WORKDIR/scripts/compliance-check.py" "$SLUG" --pre-publish
         exit 1
     fi
     echo "✅ 合规检查通过"
@@ -113,6 +113,12 @@ EOF
 sed -i '' "s|<SLUG>|$SLUG|g" $FINAL_DIR/发布说明.md
 
 echo "✅ 生成发布说明"
+
+# 7.5 自动记录跟踪数据到 tracking/predictions/
+if [ -f "$WORKDIR/scripts/tracking-record.py" ]; then
+  python3 "$WORKDIR/scripts/tracking-record.py" add "$SLUG" >/dev/null 2>&1 || true
+  echo "✅ 自动生成并写入跟踪记录到 predictions/$SLUG.json"
+fi
 
 # 8. 输出最终包结构
 echo ""
