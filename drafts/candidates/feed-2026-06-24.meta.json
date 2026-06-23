@@ -1,0 +1,43 @@
+{
+  "tool": "bibi",
+  "command": "feed",
+  "url": null,
+  "called_at": "2026-06-23T23:32:58.899884+00:00",
+  "bibi_success": true,
+  "available": true,
+  "is_hallucination": false,
+  "cost_duration": 0,
+  "reason": "OK",
+  "raw": {
+    "items_count": 50,
+    "failed_channels_count": 5,
+    "failed_channels": [
+      {
+        "title": "张小珺商业访谈录",
+        "url": "https://space.bilibili.com/280780745",
+        "message": "fetchRSSCached timeout 8000ms: https://space.bilibili.com/280780745"
+      },
+      {
+        "title": "巫师财经",
+        "url": "https://space.bilibili.com/472747194",
+        "message": "fetchRSSCached timeout 8000ms: https://space.bilibili.com/472747194"
+      },
+      {
+        "title": "Acquired - YouTube",
+        "url": "https://www.youtube.com/channel/UCyFqFYfTW2VoIQKylJ04Rtw",
+        "message": "Request failed with status code 502"
+      },
+      {
+        "title": "All-In Podcast - YouTube",
+        "url": "https://www.youtube.com/channel/UCESLZhusAkFfsNsApnjF_Cg",
+        "message": "Request failed with status code 502"
+      },
+      {
+        "title": "Bg2 Pod - YouTube",
+        "url": "https://www.youtube.com/channel/UC-yRDvpR99LUc5l7i7jLzew",
+        "message": "Request failed with status code 502"
+      }
+    ],
+    "next_cursor": "2026-06-21T12:52:29.000Z"
+  }
+}
