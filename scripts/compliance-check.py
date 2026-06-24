@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
 scripts/compliance-check.py
-发布前合规检查（自动化勾选 15 项 + PASS/FAIL）
+发布前合规检查（自动化勾选 16 项 + PASS/FAIL）
 
 用法：
   python3 compliance-check.py <slug>              # 检查单篇
   python3 compliance-check.py --all               # 检查 drafts/posts/ 下所有草稿
   python3 compliance-check.py <slug> --strict     # 任何 FAIL 直接 exit 1
 
-检查清单来源：templates/compliance/checklist.md（v3 · 15 项 · 唯一权威）
+检查清单来源：templates/compliance/checklist.md（v3 · 16 项 · 唯一权威）
 本脚本必须与 checklist.md 保持一致；如修改清单，请同步修改本脚本。
 
 设计原则：
@@ -21,6 +21,7 @@ import argparse
 import json
 import re
 import sys
+from datetime import datetime, date, timedelta
 from pathlib import Path
 from typing import List, Tuple, Optional
 
@@ -349,6 +350,91 @@ def check_15_quote_citations(content: str, slug: str) -> Tuple[str, str]:
     return 'PASS', f'引用块 {citation_lines} 个 + 中英对照 EN/CN 各 {en_blocks}/{cn_blocks}'
 
 
+def check_16_data_verified(content: str, slug: str) -> Tuple[str, str]:
+    """A16. 数据时效校验（必填 frontmatter data_verified 字段 + 时间新鲜度）
+
+    强约束（FAIL if 缺）：
+    - frontmatter data_verified.verified_at 必填，且距今 ≤ 30 天
+    - frontmatter data_verified.verified_sources 至少 1 个 URL
+    - frontmatter data_verified.verified_companies 至少 1 个条目
+
+    中约束（WARN if 缺）：
+    - 正文 5 分类公司表里至少有 1 处 [✅ verified YYYY-MM-DD] 标记
+
+    背景：2026/6/24 E 篇被打脸 —— 把"摩尔线程"写成"待上市"，沐曦/壁仞代码错位。
+    强制 web_search 核验后记录到 frontmatter，下次 publish 前 publish.sh 会检查 A16。
+    """
+    # 仅对 v2/v3 模板启用（带 frontmatter --- 块的文章）
+    fm_match = re.match(r'---\n(.*?)\n---', content, re.DOTALL)
+    if not fm_match:
+        return 'WARN', '未检测到 frontmatter 块（v2/v3 模板必填）'
+
+    fm_text = fm_match.group(1)
+
+    # 提取 data_verified 段（YAML 缩进：data_verified 下面所有缩进行，直到遇到非缩进行或文件末尾）
+    dv_match = re.search(
+        r'data_verified:\n(.*?)(?=\n\S|\Z)',
+        fm_text,
+        re.DOTALL,
+    )
+    if not dv_match:
+        return 'FAIL', 'frontmatter 缺 data_verified 段（必须包含 verified_at + verified_sources + verified_companies）'
+
+    dv_text = dv_match.group(1)
+
+    issues = []
+
+    # 检查 verified_at
+    at_match = re.search(r'verified_at:\s*["\']?(\d{4}-\d{2}-\d{2})', dv_text)
+    if not at_match:
+        issues.append('verified_at 缺失或非 ISO 日期')
+        verified_age_days = None
+    else:
+        try:
+            verified_date = datetime.strptime(at_match.group(1), '%Y-%m-%d').date()
+            verified_age_days = (date.today() - verified_date).days
+            if verified_age_days > 30:
+                issues.append(
+                    f'verified_at 已过期 {verified_age_days} 天（需 ≤ 30 天，建议发布前 24 小时内重新核验）'
+                )
+        except ValueError:
+            issues.append(f'verified_at 解析失败: {at_match.group(1)}')
+
+    # 检查 verified_sources
+    sources_match = re.search(r'verified_sources:\s*\n((?:[ \t]+-\s+.+\n)+)', dv_text)
+    if not sources_match:
+        issues.append('verified_sources 缺失或为空（至少 1 个 URL）')
+    else:
+        sources_count = len(re.findall(r'-\s+["\']?https?://', sources_match.group(1)))
+        if sources_count == 0:
+            issues.append('verified_sources 没有 http(s) URL（至少 1 个有效 URL）')
+
+    # 检查 verified_companies
+    companies_match = re.search(r'verified_companies:\s*\n((?:[ \t]+-\s+.+\n)+)', dv_text)
+    if not companies_match:
+        issues.append('verified_companies 缺失或为空（至少 1 个公司条目）')
+    else:
+        companies_count = len(re.findall(r'-\s+["\']?[^\n]+', companies_match.group(1)))
+        if companies_count == 0:
+            issues.append('verified_companies 没有有效条目')
+
+    # 中约束：正文表格里的 [✅ verified YYYY-MM-DD] 标记
+    verified_marks = re.findall(r'✅\s*verified\s+\d{4}-\d{2}-\d{2}', content)
+    if not verified_marks:
+        issues.append(
+            '建议在正文 5 分类表里加 [✅ verified YYYY-MM-DD] 标记（目前 0 处）'
+        )
+
+    if issues:
+        # 如果有强约束问题 → FAIL，否则 WARN
+        hard_issues = [i for i in issues if 'verified_at 已过期' in i or '缺失' in i or '解析失败' in i or '没有' in i]
+        status = 'FAIL' if hard_issues else 'WARN'
+        return status, '; '.join(issues[:3]) + (f' ... 共 {len(issues)} 项' if len(issues) > 3 else '')
+
+    extra = f' 已核验 {len(re.findall(r"-\\s+", companies_match.group(1)))} 家公司'
+    return 'PASS', f'verified_at {at_match.group(1)}（{verified_age_days} 天前）+ {verified_marks} 处正文标记{extra}'
+
+
 # ─────────────────────────────────────────────
 # 主入口
 # ─────────────────────────────────────────────
@@ -369,6 +455,7 @@ CHECKS = [
     ('B13', '升降级信号齐全', check_13_signals),
     ('B14', 'tracking 记录已写入', check_14_tracking),
     ('C15', '访谈引用块 + 中英对照(仅 interview: 启用)', check_15_quote_citations),
+    ('A16', '数据时效校验（frontmatter data_verified + 时间新鲜度）', check_16_data_verified),
 ]
 
 

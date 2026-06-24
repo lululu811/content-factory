@@ -34,6 +34,18 @@ interview:
   source: "archives/2026-06/inter.md"    # 原文路径（用户存档）
   duration: "~60 分钟"                    # 访谈时长（可选）
   url: "（可选：原播客链接）"              # 原文链接（可选）
+
+# ↓ 数据时效校验（A16 必读）============
+# 每篇文章发布前必须 web_search 核验所有动态字段（股票代码 / 上市状态 /
+# 营收 / 港股通 / ST 等），并在下面记录核验时间 + 来源。
+# 详见 SOP.md 4.3.2.1「数据时效校验硬规则」
+data_verified:
+  verified_at: "YYYY-MM-DD"           # 最后一次 web_search 核验日期
+  verified_by: "human | web_search"    # 谁核验的
+  verified_sources:                    # 至少 1 个核验来源 URL
+    - "https://..."
+  verified_companies:                  # 核验过的公司清单（写代码 + 公司名）
+    - "688795.SH 摩尔线程"
 ---
 ```
 

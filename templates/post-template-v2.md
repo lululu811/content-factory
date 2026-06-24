@@ -14,8 +14,24 @@ slug: url-slug
 tags: [主题1, 主题2, ..., serenity]
 hook: <50 字摘要，用于知乎答案开头>
 cover: images/cover.jpg
+
+# ============ 数据时效校验（A16 必读）============
+# 每篇文章发布前必须 web_search 核验所有动态字段（股票代码 / 上市状态 /
+# 营收 / 港股通 / ST 等），并在下面记录核验时间 + 来源。
+# 详见 SOP.md 4.3.2.1「数据时效校验硬规则」
+data_verified:
+  verified_at: "YYYY-MM-DD"           # 最后一次 web_search 核验日期
+  verified_by: "human | web_search"    # 谁核验的
+  verified_sources:                    # 至少 1 个核验来源 URL
+    - "https://..."
+  verified_companies:                  # 核验过的公司清单（写代码 + 公司名）
+    - "688795.SH 摩尔线程"
+    - "688802.SH 沐曦股份"
+    - "06082.HK 壁仞科技"
 ---
 ```
+
+> ⚠️ **A16 自动检查**：发布前跑 `compliance-check.py --strict`，如果正文里有 `**公司** + 股票代码/营收/上市状态` 但 frontmatter `data_verified.verified_at` 是空或者 verified_companies 列表为空 → **A16 FAIL，发布被拒绝**。
 
 ---
 
@@ -119,6 +135,19 @@ cover: images/cover.jpg
 ---
 
 ## 第 8 节：公司 5 分类（关键章节！）
+
+> **🔴 数据时效校验清单（必填）**：在写公司表前，对每家公司用 `web_search "<公司名> 2026 财务 上市状态"` 实时核验：
+> - **股票代码**：6 位数字（A股）/ 5 位数字（港股，0 开头）/ 英伟达 NVDA.US 等
+> - **上市状态**：已上市 / 待上市 / 退市 / ST
+> - **财务数据**：营收 / 净利 / 毛利率（用最新季报/年报）
+> - **特殊状态**：港股通 / 恒生综合指数 / ST / 退市预警
+>
+> **每行表格**在公司名或代码旁加 `[✅ verified YYYY-MM-DD]` 标记，例如：
+> ```
+> | 1 | **寒武纪** [✅ verified 2026-06-24] | 688256.SH | AI 推理 | 2025 营收 64.97 亿（+453%）|
+> ```
+>
+> 违反此规则的行 → A16 标记为"未核验"，整篇 FAIL。
 
 ```markdown
 ## 七、公司 5 分类（Serenity 标准）
