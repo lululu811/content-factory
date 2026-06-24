@@ -1,0 +1,19 @@
+{
+  "tool": "bibi",
+  "command": "summarize-chapter",
+  "url": "https://www.bilibili.com/video/BV1hA7K6jER9/",
+  "called_at": "2026-06-24T16:11:02.190554+00:00",
+  "bibi_success": true,
+  "available": false,
+  "is_hallucination": true,
+  "cost_duration": 1673,
+  "reason": "无字幕但返回了 summary，疑似 LLM 编造",
+  "raw": {
+    "summary_preview": "## Summary\n电力板块作为A股市场中兼具周期性、政策性和公用事业属性的防御性板块，在高温催生的用电需求与中报业绩预期的双重推动下，正展现出结构性行情潜力。尽管近年来电价因煤价下行及新能源装机增长而持续承压，但随着AI算力驱动的电力需求持续攀升，以及核电保底机制等政策转向，板块中长期逻辑正在发生显著重塑。电力行业不再仅仅是简单的周期博弈，而是进入了水电、火电、风光、核电四大赛道差异化竞争与价",
+    "summary_length": 1087,
+    "subtitles_count": 0,
+    "chapters_count": 4,
+    "chapter_hallucination": false,
+    "has_real_chapters": true
+  }
+}
