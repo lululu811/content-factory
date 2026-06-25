@@ -103,10 +103,24 @@ def gen_report(days: int = None) -> str:
     # ============ 4. 失败频道 ============
     failed_titles = set()
     failed_streaks = defaultdict(set)
+    # 加载 paused-channels.txt(过滤已暂停的频道,避免历史记录污染报告)
+    paused = set()
+    paused_path = Path(__file__).parent / "paused-channels.txt"
+    if paused_path.exists():
+        for line in paused_path.read_text(encoding="utf-8").splitlines():
+            s = line.strip()
+            if s and not s.startswith("#"):
+                paused.add(s)
+    if paused:
+        print(f"  (paused 频道 {len(paused)} 个,已从失败报告中过滤: {sorted(paused)})", file=sys.stderr)
     for rec in failed:
         for ch in rec.get("failed", []):
-            failed_titles.add(ch["title"])
-            failed_streaks[ch["title"]].add(rec["date"])
+            # 兼容两种字段:title(B 站) / channelTitle(YouTube channelId 格式)
+            title = ch.get("title") or ch.get("channelTitle") or ch.get("channelUrl") or "未知"
+            if title in paused:
+                continue  # 已暂停的频道不再计入
+            failed_titles.add(title)
+            failed_streaks[title].add(rec["date"])
 
     streak_lines = []
     for title, dates in sorted(failed_streaks.items()):

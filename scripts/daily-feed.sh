@@ -14,6 +14,7 @@ RAW=$WORKDIR/drafts/candidates/feed-$DATE.json
 RAW_META=$WORKDIR/drafts/candidates/feed-$DATE.meta.json
 FILTERED=$WORKDIR/drafts/candidates/filtered-$DATE.json
 FAILED_LOG=$WORKDIR/logs/failed-channels.jsonl
+PAUSED_FILE=$WORKDIR/scripts/paused-channels.txt
 
 mkdir -p $WORKDIR/drafts/candidates $WORKDIR/logs
 
@@ -108,14 +109,47 @@ fi
 
 # ─────────────────────────────────────────────
 # 3. 记录 failedChannels 到历史日志（连续失败追踪）
+#    + paused-channels 过滤（软暂停：剔除暂停频道再写日志，避免 noise）
 # ─────────────────────────────────────────────
 python3 <<PYEOF
 import json
-from datetime import datetime
+from pathlib import Path
 
 with open("$RAW", encoding="utf-8") as f:
     data = json.load(f)
 failed = data.get("failedChannels", [])
+
+# 读 paused 名单
+paused = set()
+paused_path = Path("$PAUSED_FILE")
+if paused_path.exists():
+    for line in paused_path.read_text(encoding="utf-8").splitlines():
+        s = line.strip()
+        if s and not s.startswith("#"):
+            paused.add(s)
+
+# 剔除暂停频道（按 title 或 channelTitle 字段兼容）
+def _title(ch):
+    return ch.get("title") or ch.get("channelTitle") or ""
+
+if paused:
+    before = len(failed)
+    failed_filtered = [ch for ch in failed if _title(ch) not in paused]
+    skipped = before - len(failed_filtered)
+    if skipped > 0:
+        print(f"  ⏸️  paused 跳过 {skipped} 个频道（不计入 failed-channels.jsonl）")
+    failed = failed_filtered
+    data["failedChannels"] = failed
+    # 同时从 items 剔除暂停频道（防 yt-dlp fallback 救回来又污染候选）
+    if data.get("items"):
+        items_before = len(data["items"])
+        data["items"] = [it for it in data["items"] if (it.get("channelTitle") or "") not in paused]
+        items_removed = items_before - len(data["items"])
+        if items_removed:
+            print(f"  ⏸️  paused 跳过 {items_removed} 条 fallback 候选")
+    with open("$RAW", "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
 if failed:
     with open("$FAILED_LOG", "a", encoding="utf-8") as f:
         record = {"date": "$DATE", "failed": failed}

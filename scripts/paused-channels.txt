@@ -1,0 +1,12 @@
+# scripts/paused-channels.txt
+# daily-feed.sh 暂停订阅的频道（连续失败 / 长期不可用）
+# 格式:每行一个频道 title（bibigpt 返回的精确 title）
+# 生效逻辑：daily-feed.sh 在记录 failed-channels.jsonl 前会剔除此列表中的频道
+#          并在过滤候选时不计这些频道（即便 yt-dlp fallback 成功也跳过）
+#
+# 如何解除暂停：删除对应行 + commit。下一轮 cron 自动恢复抓取。
+
+# --- YouTube RSS 服务商持续 502 / fetchRSSCached timeout ---
+Acquired - YouTube
+All-In Podcast - YouTube
+Bg2 Pod - YouTube
