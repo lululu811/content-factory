@@ -65,6 +65,55 @@ HALLUCINATION_MARKERS = [
     "constructed a summary framework",
 ]
 
+# ============ 字幕缓存（防止无字幕视频重复触发 summarize hallucination）============
+SUBTITLE_CACHE_MAX_AGE_DAYS = 7
+
+
+def check_subtitle_cache(url: str) -> dict | None:
+    """查 bibi-calls.jsonl 缓存，看近期 (≤ SUBTITLE_CACHE_MAX_AGE_DAYS 天) get-subtitle 是否已确认无字幕。
+
+    返回:
+      None — 缓存里没记录 / 记录已过期 / 有字幕（不需要 short-circuit）
+      dict(has_subtitles=False, days_ago=int, reason=str) — 已知无字幕，调用方应 short-circuit
+    """
+    if not LOG_FILE.exists():
+        return None
+    cutoff = datetime.now(timezone.utc).timestamp() - SUBTITLE_CACHE_MAX_AGE_DAYS * 86400
+    latest_no_subs = None
+    try:
+        for line in LOG_FILE.read_text(encoding="utf-8").splitlines():
+            try:
+                rec = json.loads(line)
+            except Exception:
+                continue
+            if rec.get("command") != "get-subtitle" or rec.get("url") != url:
+                continue
+            ts = rec.get("called_at", "")
+            if not ts:
+                continue
+            try:
+                rec_ts = datetime.fromisoformat(ts.replace("Z", "+00:00")).timestamp()
+            except Exception:
+                continue
+            if rec_ts < cutoff:
+                continue
+            if rec.get("available", False):
+                return None  # 近期有字幕，不 short-circuit
+            # 记录无字幕（取最新一条）
+            if latest_no_subs is None or rec_ts > latest_no_subs[0]:
+                latest_no_subs = (rec_ts, rec)
+    except Exception:
+        return None
+    if latest_no_subs:
+        ts, rec = latest_no_subs
+        days_ago = int((datetime.now(timezone.utc).timestamp() - ts) / 86400)
+        return {
+            "has_subtitles": False,
+            "days_ago": days_ago,
+            "reason": rec.get("reason", ""),
+        }
+    return None
+
 
 # ============ bibi 调用 ============
 def bibi_call(args: list, timeout: int = 60, raw: bool = False) -> dict:
@@ -569,12 +618,28 @@ def main():
         )
 
     elif args.cmd == "summarize":
-        bibi_resp = bibi_call(["summarize", args.url, "--json"])
-        record = (
-            judge_summarize(bibi_resp, args.url)
-            if "error" not in bibi_resp
-            else _err_record("summarize", args.url, bibi_resp)
-        )
+        # short-circuit：近期 get-subtitle 已确认无字幕 → 跳过 bibi 调用
+        cached = check_subtitle_cache(args.url)
+        if cached and not cached["has_subtitles"]:
+            record = {
+                "tool": "bibi",
+                "command": "summarize",
+                "url": args.url,
+                "called_at": datetime.now(timezone.utc).isoformat(),
+                "bibi_success": True,
+                "available": False,
+                "is_hallucination": True,
+                "cost_duration": 0,  # 关键：没调 bibi，不烧额度
+                "reason": f"已缓存无字幕（{cached['days_ago']} 天前: {cached['reason'][:60]}），跳过 bibi summarize 避免 LLM 编造",
+                "raw": {"cached_no_subs": True, "skipped_bibi_call": True},
+            }
+        else:
+            bibi_resp = bibi_call(["summarize", args.url, "--json"])
+            record = (
+                judge_summarize(bibi_resp, args.url)
+                if "error" not in bibi_resp
+                else _err_record("summarize", args.url, bibi_resp)
+            )
 
     elif args.cmd == "feed":
         bibi_resp = bibi_call(["feed", "--limit", str(args.limit), "--json"])
@@ -618,12 +683,28 @@ def main():
         )
 
     elif args.cmd == "summarize-chapter":
-        bibi_resp = bibi_call(["summarize", args.url, "--chapter", "--json"])
-        record = (
-            judge_summarize_chapter(bibi_resp, args.url)
-            if "error" not in bibi_resp
-            else _err_record("summarize-chapter", args.url, bibi_resp)
-        )
+        # short-circuit：同上（无字幕时 bibi LLM 也会编造 chapter summary）
+        cached = check_subtitle_cache(args.url)
+        if cached and not cached["has_subtitles"]:
+            record = {
+                "tool": "bibi",
+                "command": "summarize-chapter",
+                "url": args.url,
+                "called_at": datetime.now(timezone.utc).isoformat(),
+                "bibi_success": True,
+                "available": False,
+                "is_hallucination": True,
+                "cost_duration": 0,
+                "reason": f"已缓存无字幕（{cached['days_ago']} 天前: {cached['reason'][:60]}），跳过 bibi summarize-chapter 避免 LLM 编造",
+                "raw": {"cached_no_subs": True, "skipped_bibi_call": True},
+            }
+        else:
+            bibi_resp = bibi_call(["summarize", args.url, "--chapter", "--json"])
+            record = (
+                judge_summarize_chapter(bibi_resp, args.url)
+                if "error" not in bibi_resp
+                else _err_record("summarize-chapter", args.url, bibi_resp)
+            )
 
     elif args.cmd == "async-task":
         if args.action == "create":
@@ -654,17 +735,34 @@ def main():
                 record = _err_record("async-task", None, {"error": reason, "raw": bibi_resp})
 
     elif args.cmd == "polish":
-        bibi_resp = bibi_call(["get-polished-text", "--url", args.url, "--json"])
-        if "error" not in bibi_resp:
-            record = judge_polish(bibi_resp, args.url)
+        # short-circuit：polish 在无字幕时也会失败（"No subtitles found"）
+        # 缓存命中就不调 bibi，省一次 API 调用
+        cached = check_subtitle_cache(args.url)
+        if cached and not cached["has_subtitles"]:
+            record = {
+                "tool": "bibi",
+                "command": "polish",
+                "url": args.url,
+                "called_at": datetime.now(timezone.utc).isoformat(),
+                "bibi_success": False,
+                "available": False,
+                "is_hallucination": False,
+                "cost_duration": 0,
+                "reason": f"已缓存无字幕（{cached['days_ago']} 天前: {cached['reason'][:60]}），跳过 bibi polish",
+                "raw": {"cached_no_subs": True, "skipped_bibi_call": True, "error": "无字幕，无法 polish"},
+            }
         else:
-            # polish 在无字幕时返回 "Error: No subtitles found" 等纯文本
-            # 从 stderr 提取更友好的原因
-            stderr_text = bibi_resp.get("stderr", "")
-            reason = bibi_resp["error"]
-            if "No subtitles found" in stderr_text:
-                reason = "无字幕，无法 polish（这是 bibi 正常失败，不是 LLM 编造）"
-            record = _err_record("polish", args.url, {"error": reason, "raw": bibi_resp})
+            bibi_resp = bibi_call(["get-polished-text", "--url", args.url, "--json"])
+            if "error" not in bibi_resp:
+                record = judge_polish(bibi_resp, args.url)
+            else:
+                # polish 在无字幕时返回 "Error: No subtitles found" 等纯文本
+                # 从 stderr 提取更友好的原因
+                stderr_text = bibi_resp.get("stderr", "")
+                reason = bibi_resp["error"]
+                if "No subtitles found" in stderr_text:
+                    reason = "无字幕，无法 polish（这是 bibi 正常失败，不是 LLM 编造）"
+                record = _err_record("polish", args.url, {"error": reason, "raw": bibi_resp})
 
     # 输出 + 日志
     append_log(record)

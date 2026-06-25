@@ -94,9 +94,16 @@ def gen_report(days: int = None) -> str:
     sm_hallucination = sum(1 for r in sm_calls if r["is_hallucination"])
     halluc_rate = (sm_hallucination / len(sm_calls) * 100) if sm_calls else 0
 
+    # 区分：🔥 实际调 bibi 的 hallucination（烧额度）
+    #       📦 缓存 short-circuit 跳过的 hallucination（0 额度）
+    halluc_actual = [r for r in sm_calls if r["is_hallucination"] and not r.get("raw", {}).get("cached_no_subs")]
+    halluc_cached = [r for r in sm_calls if r["is_hallucination"] and r.get("raw", {}).get("cached_no_subs")]
+    sm_actual_cost = sum(r.get("cost_duration", 0) for r in sm_calls if not r.get("raw", {}).get("cached_no_subs"))
+    sm_cached_cost = sum(r.get("cost_duration", 0) for r in sm_calls if r.get("raw", {}).get("cached_no_subs"))
+
     # 按 URL 统计 hallucination（哪些视频被 hallucination）
     halluc_urls = [
-        (r["url"], r.get("reason", ""))
+        (r["url"], r.get("reason", ""), r.get("raw", {}).get("cached_no_subs", False))
         for r in sm_calls if r["is_hallucination"]
     ]
 
@@ -235,13 +242,23 @@ def gen_report(days: int = None) -> str:
     lines.append(f"| Hallucination 率 | **{halluc_rate:.1f}%** |")
     lines.append("")
 
+    # 拆分实际调用 vs 缓存 short-circuit
+    lines.append("### 拆分：实际调 bibi vs 缓存 short-circuit")
+    lines.append("")
+    lines.append("| 类别 | 次数 | 累计 cost |")
+    lines.append("|---|---|---|")
+    lines.append(f"| 🔥 实际调 bibi（被 LLM 编造） | {len(halluc_actual)} 次 | {sm_actual_cost}s = {sm_actual_cost/60:.1f} 分钟 |")
+    lines.append(f"| 📦 缓存 short-circuit（0 额度） | {len(halluc_cached)} 次 | {sm_cached_cost}s = 0 分钟 |")
+    lines.append("")
+
     if halluc_urls:
         lines.append("### 被检测为 hallucination 的视频")
         lines.append("")
         lines.append("| URL | 原因 |")
         lines.append("|---|---|")
-        for url, reason in halluc_urls[:10]:
-            lines.append(f"| {url[:80]} | {reason[:80]} |")
+        for url, reason, cached in halluc_urls[:10]:
+            tag = "📦" if cached else "🔥"
+            lines.append(f"| {tag} {url[:70]} | {reason[:70]} |")
         lines.append("")
 
     # 4. 失败频道
