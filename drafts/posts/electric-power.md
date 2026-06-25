@@ -28,6 +28,47 @@ data_verified:
     - "601105 龙源电力 (2025 营收 ~300 亿 -18.39%, 归母净利 45.26 亿 -28.67%) [✅ verified 2026-06-25]"
     - "600236 桂冠电力 (国内第三大水电运营商) [✅ verified 2026-06-25]"
     - "600886 国投电力 (雅鲁藏布江下游水电参股方) [✅ verified 2026-06-25]"
+
+research_reports:
+  queried_at: "2026-06-25"
+  found_concepts: 15
+  read_concepts: 8
+  linked_concepts:
+    - name: "AI电力"
+      path: "wiki/concepts/AI电力.md"
+      used_for: "电力板块定位 + 4 大赛道画像 + AIDC 供电架构"
+    - name: "AI算力数据中心电力结构"
+      path: "wiki/concepts/AI算力数据中心电力结构.md"
+      used_for: "算力中心用电 1700→8000 亿度增长路径"
+    - name: "核电"
+      path: "wiki/concepts/核电.md"
+      used_for: "中国核电 vs 中国广核双寡头对比 + 核电保底机制"
+    - name: "2万亿算力基建计划"
+      path: "wiki/concepts/2万亿算力基建计划.md"
+      used_for: "算力中心投资规模 + 雅鲁藏布江工程"
+    - name: "数据中心电源"
+      path: "wiki/concepts/数据中心电源.md"
+      used_for: "800V HVDC / SST / SSCB 供电架构"
+    - name: "AIDC"
+      path: "wiki/concepts/AIDC.md"
+      used_for: "AI 数据中心基础设施"
+    - name: "燃气轮机发电"
+      path: "wiki/concepts/燃气轮机发电.md"
+      used_for: "AI 数据中心备用电源"
+    - name: "数据中心"
+      path: "wiki/concepts/数据中心.md"
+      used_for: "应用场景总览"
+  linked_sources:
+    - date: "2025-12-04"
+      path: "wiki/sources/摘要-2025-12-04-核电电力量子更新.md"
+      used_for: "核电 + 电力 + 量子 2025-12 最新更新"
+    - date: "2025-06-05"
+      path: "wiki/sources/摘要-2025-06-05-算力电力协同更新.md"
+      used_for: "算电协同 + 国产算力"
+    - date: "2025-06-04"
+      path: "wiki/sources/摘要-2025-06-04-算力数据中心光通信更新.md"
+      used_for: "算力中心光通信 + 数据中心更新"
+  skipped_reason: ""
 ---
 
 # 夏炒电还没结束?一口气看懂电力 4 大赛道的真相

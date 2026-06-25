@@ -77,10 +77,35 @@ python3 scripts/filter-candidates.py
 
 | 来源 | 用法 |
 |---|---|
-| **Obsidian 库 /query skill** | 在已有 sources / syntheses 里检索 |
+| **🆕 research-reports /query skill** | **Step 0 必跑**：在 `~/003_knowledge/knowledge_base/research-reports/` 的 1053 个概念 + 2181 个飞书日报里检索已有素材 |
 | serenity-skill | 跑产业链深度研究（必跑） |
 | web search (matrix_web_search) | 补 2026 H1 最新数据 |
 | bibigpt summarize --chapter | 拿音视频素材结构化大纲 |
+
+#### 4.2.1 research-reports /query 必跑（Step 0，硬约束）
+
+**为什么放在第一位**：research-reports 已有 1053 个概念 + 2181 个飞书日报 source，是长期积累的高质量原料。**不查 = 浪费 = 文章浅**。
+
+**强制 3 步**（写新文章前必跑）：
+
+1. **快速扫**:跑 `bash scripts/research-reports-query.sh "<主题关键词>"` 看返回的 top 10 匹配概念
+   - 例:`bash scripts/research-reports-query.sh "电力 算力 数据中心"`
+   - 返回:`AI电力.md` / `AIDC.md` / `数据中心电源.md` / `核电.md` 等
+2. **深度读**:对 top 5-10 概念,用 Read 工具读完整内容,提取关键数据/公司/观点
+3. **写进 frontmatter**:在文章 frontmatter 加 `research_reports:` 字段,记录用过的概念 + 飞书日报源(详见 4.3.6)
+
+**降级处理**:如果 research-reports 无相关内容,在 frontmatter 加 `research_reports.queried_at` + `research_reports.found_concepts: 0` 标记,而不是跳过不查。
+
+**实测案例**(electric-power):
+- 查询"电力 算力 数据中心" → 命中 10+ 概念:`AI电力.md`(142 行) / `核电.md` / `AI算力数据中心电力结构.md` 等
+- 比单凭印象写深 3-5 倍
+
+#### 4.2.2 serenity-skill + research-reports 互补
+
+- **research-reports** = 你长期积累的"原料库"（已有数据 / 观点 / 关联）
+- **serenity-skill** = 即时联网的"研究助手"（跑公告 / 财报 / 问询函）
+
+两者互补:`/query` 先查 research-reports 已有 → 再跑 serenity-skill 补全最新 → 再 web_search 核验。
 
 **serenity-skill 必跑 prompt 模板**：
 ```
@@ -170,6 +195,35 @@ python3 scripts/filter-candidates.py
 
 每篇发布前过 `templates/compliance/checklist.md` 10 项检查。
 高风险词（"买入/卖出/目标价/推荐/保证/加仓/稳赚"等）只能出现在免责声明反向表达中。
+
+#### 4.3.6 🆕 research-reports 查证记录（frontmatter 硬约束）
+
+**为什么这条**：把 research-reports 跟 content-factory 双向打通的关键——**让每篇文章都自带 research-reports 的深度**,同时反向登记"这篇文章用了 research-reports 哪些原料"。
+
+**frontmatter 必填字段**：
+
+```yaml
+research_reports:
+  queried_at: "2026-06-25"           # research-reports /query 调用时间
+  found_concepts: 12                 # 命中的概念数
+  read_concepts: 8                   # 实际深度读的概念数
+  linked_concepts:                   # 用到的概念（指向 research-reports 里的文件）
+    - name: "AI电力"
+      path: "wiki/concepts/AI电力.md"
+      used_for: "电力板块定位 + 4 大赛道画像"
+    - name: "核电"
+      path: "wiki/concepts/核电.md"
+      used_for: "中国核电 vs 中国广核双寡头对比"
+  linked_sources:                    # 用到的飞书日报 source
+    - date: "2025-06-16"
+      path: "wiki/sources/摘要-2025-06-18-核聚变+核电+铀矿更新.md"
+      used_for: "核电保底机制最新数据"
+  skipped_reason: ""                 # 如果 found_concepts = 0,说明跳过原因
+```
+
+**正文中的引用**：在文章正文引用 research-reports 概念时,用 Obsidian 双链 `[[概念名]]` 格式(让 Obsidian 用户能直接跳转)。
+
+**自动化检查**(后续可加):compliance-check.py 加 A17 检查——`research_reports.queried_at` 距今 ≤ 30 天。
 
 ### 4.4 配图生成（matplotlib 标准）
 
