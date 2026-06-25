@@ -6,7 +6,38 @@ slug: asean-ai-supply-chain
 tags: [东盟, AI供应链, 数据中心, 封测, 马来西亚, 新加坡, serenity]
 hook: 摩根士丹利东盟峰会得出关键判断：AI 供应链正在全球化分工，中国卡上游（稀土/电力/材料），东盟卡中下游（封测/数据中心/机柜）。本文用 Serenity 标准拆解东盟承接 L1-L3 的真实图景，列出 20+ 候选公司、5 分类、5 要素排序。
 cover: images/cover-v2/image_002.jpg
+
+research_reports:
+  queried_at: "2026-06-25"
+  found_concepts: 10
+  read_concepts: 5
+  linked_concepts:
+    - name: "AI数据中心"
+      path: "wiki/concepts/AI数据中心.md"
+      used_for: "L8 数据中心(马来 / 新加坡承接)"
+    - name: "DCI-数据中心互联"
+      path: "wiki/concepts/DCI-数据中心互联.md"
+      used_for: "DCI 数据中心互联"
+    - name: "国产算力"
+      path: "wiki/concepts/国产算力.md"
+      used_for: "国产算力出海"
+    - name: "AI算力数据中心电力结构"
+      path: "wiki/concepts/AI算力数据中心电力结构.md"
+      used_for: "算力中心电力结构"
+    - name: "半导体封测"
+      path: "wiki/concepts/半导体封测.md"
+      used_for: "L6 越南泰国封测承接"
+  linked_sources:
+    - date: "2026-06-10"
+      path: "wiki/sources/摘要-2026-06-10-国产算力数据中心更新.md"
+      used_for: "国产算力 + 数据中心 + AIDC"
+    - date: "2025-06-04"
+      path: "wiki/sources/摘要-2025-06-04-算力数据中心光通信更新.md"
+      used_for: "算力数据中心 + 光通信 + 博通"
+  skipped_reason: ""
 ---
+**research-reports 上下文**:本文主题直接对应 research-reports 的 [[AI数据中心]] / [[DCI-数据中心互联]] / [[半导体封测]] 等核心概念,详见 frontmatter `research_reports` 字段。
+
 
 # AI 供应链的真实图景
 

@@ -6,6 +6,9 @@
 
 set -e
 
+# 注入 cron 环境变量路径
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$HOME/.local/bin:$PATH"
+
 WORKDIR=$HOME/content-factory
 PYTHON=python3
 SCRIPT_DIR=$WORKDIR/scripts
@@ -49,7 +52,7 @@ echo "────────────────────────�
 COMPLIANCE_FAILED=0
 for draft in $(ls -t $WORKDIR/drafts/posts/*.md 2>/dev/null | head -3); do
     slug=$(basename "$draft" .md)
-    if $PYTHON $SCRIPT_DIR/compliance-check.py "$slug" --strict > /tmp/comp-$slug.log 2>&1; then
+    if $PYTHON $SCRIPT_DIR/compliance-check.py "$slug" --strict --pre-publish > /tmp/comp-$slug.log 2>&1; then
         echo "  ✅ $slug: 合规通过" | tee -a $LOG
     else
         echo "  ❌ $slug: 合规未通过(见 /tmp/comp-$slug.log)" | tee -a $LOG

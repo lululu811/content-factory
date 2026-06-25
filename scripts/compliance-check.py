@@ -435,6 +435,84 @@ def check_16_data_verified(content: str, slug: str) -> Tuple[str, str]:
     return 'PASS', f'verified_at {at_match.group(1)}（{verified_age_days} 天前）+ {verified_marks} 处正文标记{extra}'
 
 
+def check_17_research_reports(content: str, slug: str) -> Tuple[str, str]:
+    """A17. research-reports /query 必跑（frontmatter research_reports 字段 + 时间新鲜度）
+
+    强约束（FAIL if 缺）：
+    - frontmatter research_reports.queried_at 必填，且距今 ≤ 30 天
+    - frontmatter research_reports.linked_concepts 至少 1 个条目（除非 skipped_reason 写明）
+
+    中约束（WARN if 缺）：
+    - 正文里有 Obsidian 双链 [[概念名]] 格式
+
+    背景：content-factory SOP 4.2.1 规定写新文章前必跑 research-reports /query。
+    research-reports 是 1053 概念 + 2181 source 的长期积累,不查 = 浪费。
+    """
+    fm_match = re.match(r'---\n(.*?)\n---', content, re.DOTALL)
+    if not fm_match:
+        return 'WARN', '未检测到 frontmatter 块（v2/v3 模板必填）'
+
+    fm_text = fm_match.group(1)
+
+    # 提取 research_reports 段
+    rr_match = re.search(
+        r'research_reports:\n(.*?)(?=\n\S|\Z)',
+        fm_text,
+        re.DOTALL,
+    )
+    if not rr_match:
+        return 'FAIL', 'frontmatter 缺 research_reports 段（必须包含 queried_at + linked_concepts 或 skipped_reason）'
+
+    rr_text = rr_match.group(1)
+    issues = []
+
+    # 检查 queried_at
+    at_match = re.search(r'queried_at:\s*["\']?(\d{4}-\d{2}-\d{2})', rr_text)
+    if not at_match:
+        issues.append('queried_at 缺失或非 ISO 日期')
+        queried_age_days = None
+    else:
+        try:
+            queried_date = datetime.strptime(at_match.group(1), '%Y-%m-%d').date()
+            queried_age_days = (date.today() - queried_date).days
+            if queried_age_days > 30:
+                issues.append(
+                    f'queried_at 已过期 {queried_age_days} 天（需 ≤ 30 天，建议发布前 24 小时内重新查）'
+                )
+        except ValueError:
+            issues.append(f'queried_at 解析失败: {at_match.group(1)}')
+
+    # 检查 skipped_reason
+    skipped_match = re.search(r'skipped_reason:\s*["\']?([^\n]+)', rr_text)
+    skipped_reason = skipped_match.group(1).strip() if skipped_match else ''
+
+    # 检查 linked_concepts（数所有 `- name:` 行，不要求连续）
+    found_concepts_count = len(re.findall(r'-\s+name:', rr_text))
+
+    # 强约束：要么有 linked_concepts，要么 skipped_reason 写明
+    if found_concepts_count == 0 and not skipped_reason:
+        issues.append(
+            'linked_concepts 为空且 skipped_reason 未填写（必须至少填一项）'
+        )
+
+    # 中约束：正文里的 [[概念名]] 双链
+    obsidian_links = re.findall(r'\[\[[^\]\n]+\]\]', content)
+    if not obsidian_links:
+        issues.append(
+            '建议在正文里加 [[概念名]] 双链格式（research-reports Obsidian 链接）'
+        )
+
+    if issues:
+        hard_issues = [i for i in issues if '已过期' in i or '缺失' in i or '解析失败' in i or '为空' in i]
+        status = 'FAIL' if hard_issues else 'WARN'
+        return status, '; '.join(issues[:3]) + (f' ... 共 {len(issues)} 项' if len(issues) > 3 else '')
+
+    return 'PASS', (
+        f'queried_at {at_match.group(1)}（{queried_age_days} 天前）+ {found_concepts_count} 个概念链接'
+        f'+ {len(obsidian_links)} 处正文双链'
+    )
+
+
 # ─────────────────────────────────────────────
 # 主入口
 # ─────────────────────────────────────────────
@@ -456,6 +534,7 @@ CHECKS = [
     ('B14', 'tracking 记录已写入', check_14_tracking),
     ('C15', '访谈引用块 + 中英对照(仅 interview: 启用)', check_15_quote_citations),
     ('A16', '数据时效校验（frontmatter data_verified + 时间新鲜度）', check_16_data_verified),
+    ('A17', 'research-reports /query 必跑(frontmatter research_reports + 时间新鲜度)', check_17_research_reports),
 ]
 
 
@@ -498,7 +577,7 @@ def print_report(slug: str, results: List[Tuple[str, str, str, str]]) -> bool:
     if warn > 0:
         print(f'  ⚠️  **可发布但有风险**:有 {warn} 项 WARN,建议尽快修复。')
     else:
-        print(f'  🎉 **可发布**:15/15 全部 PASS。')
+        print(f'  🎉 **可发布**:16/16 全部 PASS。')
     return True
 
 

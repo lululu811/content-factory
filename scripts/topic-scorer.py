@@ -109,8 +109,15 @@ def score_freshness(published_at):
         if pub_str.endswith('Z'):
             pub_str = pub_str.replace('Z', '+00:00')
         pub_time = datetime.fromisoformat(pub_str)
-        now = datetime.now(timezone.utc)
-        days = (now - pub_time).days
+        
+        # 统一为 timezone-aware (UTC) 或 timezone-naive 进行比较，避免 datetime 减法类型报错
+        if pub_time.tzinfo is not None:
+            now = datetime.now(timezone.utc)
+            days = (now - pub_time).days
+        else:
+            now = datetime.now()
+            days = (now - pub_time).days
+            
         if days <= 3:
             return 20
         elif days <= 7:

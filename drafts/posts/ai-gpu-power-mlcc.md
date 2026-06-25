@@ -49,7 +49,41 @@ data_verified:
     - "300408.SZ 三环集团 (2026 Q1 营收 26.81 亿 +46%)"
     - "000636.SZ 风华高科 (2026/5 涨停)"
     - "600460.SH 士兰微 (2025 营收 130.52 亿, 全球第十 2.6%)"
+
+research_reports:
+  queried_at: "2026-06-25"
+  found_concepts: 10
+  read_concepts: 5
+  linked_concepts:
+    - name: "国产算力"
+      path: "wiki/concepts/国产算力.md"
+      used_for: "国产 AI GPU 三强争霸"
+    - name: "国产替代"
+      path: "wiki/concepts/国产替代.md"
+      used_for: "国产替代主线"
+    - name: "MLCC涨价周期"
+      path: "wiki/concepts/MLCC涨价周期.md"
+      used_for: "MLCC 是下一个存储"
+    - name: "功率半导体"
+      path: "wiki/concepts/功率半导体.md"
+      used_for: "IGBT / 氮化镓涨价传导"
+    - name: "AI算力硬件"
+      path: "wiki/concepts/AI算力硬件.md"
+      used_for: "AI 算力硬件总览"
+  linked_sources:
+    - date: "2025-12-05"
+      path: "wiki/sources/摘要-2025-12-05-AI链更新-国产算力摩尔沐曦.md"
+      used_for: "国产算力 + 摩尔 / 沐曦 + 光通信 + AI电力"
+    - date: "2026-05-05"
+      path: "wiki/sources/AI链国产算力更新-2026-05-05.md"
+      used_for: "国产算力更新"
+    - date: "2025-06-20"
+      path: "wiki/sources/半导体更新-6月20日.md"
+      used_for: "长鑫 HBM3 + 盛合晶微 IPO + 兆易港股"
+  skipped_reason: ""
 ---
+**research-reports 上下文**:本文主题直接对应 research-reports 的 [[国产算力]] / [[MLCC涨价周期]] / [[功率半导体]] 等核心概念,详见 frontmatter `research_reports` 字段。
+
 
 # AI 算力下半场：3 个被低估的新卡点
 

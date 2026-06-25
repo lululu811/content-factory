@@ -6,7 +6,41 @@ slug: cicc-ai-population
 tags: [人形机器人, 减速器, 中韩对比, 人口变局, serenity]
 hook: 中金首席刘刚 + 大摩中韩机器人闭门会得出 3 个非共识判断：人形机器人真正的卡点不在整机厂，在减速器 / 精密件 / 传感器三个层级。本文用 Serenity 标准深度拆解 20+ 候选公司、5 分类、5 要素排序，告诉你哪些标的值得研究、哪些热门是噪音。
 cover: images/cover-v2/image_002.jpg
+
+research_reports:
+  queried_at: "2026-06-25"
+  found_concepts: 10
+  read_concepts: 5
+  linked_concepts:
+    - name: "人形机器人产业链"
+      path: "wiki/concepts/人形机器人.md"
+      used_for: "人形机器人 3 大卡点对比"
+    - name: "力传感器"
+      path: "wiki/concepts/力传感器.md"
+      used_for: "L7 传感器卡点(六维力矩)"
+    - name: "摆线针轮减速器"
+      path: "wiki/concepts/摆线针轮减速器.md"
+      used_for: "L4 减速器卡点(日企垄断)"
+    - name: "触觉传感器"
+      path: "wiki/concepts/触觉传感器.md"
+      used_for: "L7 传感器扩展(机器人电子皮肤)"
+    - name: "AI+工业"
+      path: "wiki/concepts/AI+工业.md"
+      used_for: "人形机器人 = AI + 工业落地"
+  linked_sources:
+    - date: "2025-08-04"
+      path: "wiki/sources/摘要-2025-08-04-人形机器人更新.md"
+      used_for: "智元融资 + 电子皮肤 + 触觉传感器"
+    - date: "2025-07-23"
+      path: "wiki/sources/2025-07-23-人形机器人更新.md"
+      used_for: "星动纪元 + 字节 + 特斯拉Optimus + 谐波减速器"
+    - date: "2025-06-17"
+      path: "wiki/sources/摘要-2025-06-17-人形机器人更新.md"
+      used_for: "1X 世界模型 + 产业链动态"
+  skipped_reason: ""
 ---
+**research-reports 上下文**:本文主题直接对应 research-reports 的 [[力传感器]] / [[摆线针轮减速器]] / [[触觉传感器]] 等核心概念,详见 frontmatter `research_reports` 字段。
+
 
 # 人形机器人真正的卡点不在本体
 

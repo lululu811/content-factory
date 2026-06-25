@@ -13,7 +13,41 @@ interview:
   date: "2026 H1（Lip-Bu Tan 任 Intel CEO 第 14 个月）"
   source: "archives/2026-06/inter.md"
   duration: "~60 分钟"
+
+research_reports:
+  queried_at: "2026-06-25"
+  found_concepts: 10
+  read_concepts: 5
+  linked_concepts:
+    - name: "HBM-高带宽存储器"
+      path: "wiki/concepts/HBM-高带宽存储器.md"
+      used_for: "L5 HBM 卡点(SK 海力士垄断)"
+    - name: "AI电力"
+      path: "wiki/concepts/AI电力.md"
+      used_for: "L8 电力基础瓶颈"
+    - name: "AIDC"
+      path: "wiki/concepts/AIDC.md"
+      used_for: "AI 数据中心基础设施"
+    - name: "氦气"
+      path: "wiki/concepts/氦气.md"
+      used_for: "L6/L7 氦气隐藏瓶颈"
+    - name: "算力+电力协同"
+      path: "wiki/concepts/算力+电力协同.md"
+      used_for: "算电协同"
+  linked_sources:
+    - date: "2026-04-30"
+      path: "wiki/sources/摘要-2026-04-AIDC-燃机-电力更新.md"
+      used_for: "AIDC + 燃机 + 电力更新"
+    - date: "2025-06-18"
+      path: "wiki/sources/摘要-2025-06-18-核聚变+核电+铀矿更新中石油增资+哈萨克出海.md"
+      used_for: "核聚变 + 核电 + 铀矿"
+    - date: "2026-03-09"
+      path: "wiki/sources/摘要-2026-03-09-AI电力更新算电协同+绿氢+.md"
+      used_for: "AI 电力 + 算电协同 + 绿氢"
+  skipped_reason: ""
 ---
+**research-reports 上下文**:本文主题直接对应 research-reports 的 [[HBM-高带宽存储器]] / [[AI电力]] / [[氦气]] 等核心概念,详见 frontmatter `research_reports` 字段。
+
 
 # AI 算力三大瓶颈的真相
 

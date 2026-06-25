@@ -6,6 +6,38 @@ slug: morgan-ai-supply-chain
 tags: [AI算力, 稀土永磁, 电力, 铜矿, 摩根士丹利, serenity]
 hook: 摩根士丹利东盟峰会得出 3 个非共识判断：AI 真正的瓶颈不在 GPU/HBM，而在电力 + 稀土 + 关键金属三个资源端层级。本文用 Serenity 标准深度拆解 20+ 候选公司、5 分类、5 要素排序，告诉你 alpha 在哪、哪些热门是噪音。
 cover: images/cover-v2/image_002.jpg
+
+research_reports:
+  queried_at: "2026-06-25"
+  found_concepts: 15
+  read_concepts: 6
+  linked_concepts:
+    - name: "稀土出口管制"
+      path: "wiki/concepts/稀土出口管制.md"
+      used_for: "稀土 L7 卡点 + 中国出口管制杠杆"
+    - name: "稀土永磁"
+      path: "wiki/concepts/稀土永磁.md"
+      used_for: "钕铁硼永磁电机需求(AI + 机器人 + 新能源车)"
+    - name: "AI电力"
+      path: "wiki/concepts/AI电力.md"
+      used_for: "电力 L8 卡点 + AIDC 供电架构升级"
+    - name: "AI算力数据中心电力结构"
+      path: "wiki/concepts/AI算力数据中心电力结构.md"
+      used_for: "算力中心用电 1700→8000 亿度增长"
+    - name: "重稀土战略资源"
+      path: "wiki/concepts/重稀土战略资源.md"
+      used_for: "中重稀土战略地位"
+    - name: "国产算力"
+      path: "wiki/concepts/国产算力.md"
+      used_for: "AI 算力链 + 国产替代背景"
+  linked_sources:
+    - date: "2025-10-10"
+      path: "wiki/sources/摘要-2025-10-10-稀土出口管制更新.md"
+      used_for: "稀土出口管制最新更新"
+    - date: "2025-07-28"
+      path: "wiki/sources/2025-07-28-有色金属更新.md"
+      used_for: "稀土 + 铜铝 + 锡 行业更新"
+  skipped_reason: ""
 ---
 
 # AI 真正的瓶颈不是 GPU
@@ -27,6 +59,8 @@ cover: images/cover-v2/image_002.jpg
 ## 一、为什么现在写这个
 
 2026 年 6 月，摩根士丹利在新加坡召开东盟峰会，议题是 **"赋能人工智能供应链：稀土、电力、金属——谁将胜出？"** [🟡 L2 · 大摩闭门会]
+
+**research-reports 上下文**:本文主题直接对应 research-reports 的 [[稀土出口管制]] / [[稀土永磁]] / [[AI电力]] 等核心概念,详见 frontmatter `research_reports` 字段。
 
 55 分钟的闭门会里，分析师得出的核心结论不是关于 GPU、HBM、光模块 —— 而是关于**电力供应的紧张、稀土的战略稀缺、铜铝的双重需求叠加**。
 

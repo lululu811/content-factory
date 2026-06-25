@@ -5,6 +5,9 @@
 
 set -e
 
+# 注入 cron 环境变量路径
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$HOME/.local/bin:$PATH"
+
 DATE=$(date +%Y-%m-%d)
 WORKDIR=$HOME/content-factory
 RAW=$WORKDIR/drafts/candidates/feed-$DATE.json

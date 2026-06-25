@@ -46,6 +46,23 @@ data_verified:
     - "https://..."
   verified_companies:                  # 核验过的公司清单（写代码 + 公司名）
     - "688795.SH 摩尔线程"
+
+# ============ research-reports 查证记录（A17 必读）============
+# 详见 SOP.md 4.2.1 + 4.3.6「research-reports /query 必跑」+「查证记录」
+# v3 模板（访谈/对话）也需要先查 research-reports,补已有概念 + 飞书日报
+research_reports:
+  queried_at: "YYYY-MM-DD"             # /query 调用时间（必填,距今 ≤ 30 天）
+  found_concepts: 0                    # 命中的概念数
+  read_concepts: 0                     # 实际深度读的概念数
+  linked_concepts:                     # 用到的概念（指向 ~/003_knowledge/...）
+    - name: ""
+      path: ""                         # 相对路径,如 wiki/concepts/AI电力.md
+      used_for: ""
+  linked_sources:                      # 用到的飞书日报 source
+    - date: ""
+      path: ""
+      used_for: ""
+  skipped_reason: ""
 ---
 ```
 
