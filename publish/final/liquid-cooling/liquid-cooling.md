@@ -1,6 +1,7 @@
 ---
 title: "AI 数据中心液冷:被低估的算力第 4 大卡点"
 date: 2026-06-25
+cover: images/cover-v2/image_001.jpg
 category: industry-analysis
 tags: [AI数据中心, 液冷, 算力基础设施, 冷板式, 浸没式, PUE, 英维克, 高澜股份, 曙光数创]
 status: draft
@@ -75,6 +76,8 @@ research_reports:
 ---
 
 # AI 数据中心液冷:被低估的算力第 4 大卡点
+
+![封面](images/cover-v2/image_001.jpg)
 
 > **摘要**:2026 年 AI 数据中心液冷渗透率从 2024 年的 14% → 2026 年 40%,正进入关键拐点年。市场普遍把液冷当成"散热技术",但本文论证:**液冷是 AI 算力上限的硬约束**——当 Rubin GPU 功耗突破 2000W、Vera Rubin NVL 72 单机柜功率突破 225kW,液冷从"选配"变成"必配"。本文深度拆解 3 大液冷路线(冷板 / 浸没 / 喷淋),按 Serenity 标准梳理 23 家 A 股标的,告诉你 alpha 在哪、谁是真龙头、谁是蹭概念。
 
