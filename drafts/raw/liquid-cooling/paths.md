@@ -37,6 +37,10 @@
 | **发布说明** | `~/content-factory/publish/final/liquid-cooling/发布说明.md` | publish.sh 自动生成的发布指引 |
 | **outline** | `~/content-factory/drafts/raw/liquid-cooling/00-outline.md` | 选题大纲(章节设计 + 候选公司) |
 | **gen-charts.py** | `~/content-factory/drafts/raw/liquid-cooling/gen-charts.py` | 5 张图生成脚本(可重跑) |
+| **封面 image_001.jpg** | `~/content-factory/publish/images/liquid-cooling/cover-v2/image_001.jpg` | matrix_generate_image 生成的封面(SOP 4.3.4) |
+| **封面 image_001.jpg(发布包)** | `~/content-factory/publish/final/liquid-cooling/images/cover-v2/image_001.jpg` | 同步到发布包 |
+| **封面 image.jpg(发布包)** | `~/content-factory/publish/final/liquid-cooling/images/cover.jpg` | publish.sh 第 49 行自动复制 |
+| **paths.md** | `~/content-factory/drafts/raw/liquid-cooling/paths.md` | 文件路径速查清单 |
 
 ## 🔗 同步到 research-reports
 
