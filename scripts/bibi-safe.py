@@ -287,6 +287,7 @@ def judge_feed(bibi_resp: dict) -> dict:
         "reason": "OK" if items else "feed 返回 0 条",
         "raw": {
             "items_count": len(items),
+            "items": items,  # v3 修复:保留完整 items 数组(之前被丢弃,导致 daily-feed.sh 拿不到视频数据)
             "failed_channels_count": len(failed),
             "failed_channels": [
                 {
