@@ -61,23 +61,61 @@ def normalize_company_name(name: str) -> str:
     return NAME_ALIASES.get(name, name)
 
 
-def extract_companies(snippet: str, title: str, whitelist: set = None) -> set:
+# 默认非 A 股清单路径(可被 CLI --non-a-file 覆盖)
+DEFAULT_NON_A_LIST = Path(__file__).parent / "non-a-stock-participants.md"
+
+
+def load_non_a_list(path: Path = None) -> set:
+    """从 non-a-stock-participants.md 加载非 A 股公司名集合(支持 markdown 表格)
+
+    解析 | **公司名** | ... 行,提取加粗的公司名(用 **xx** 标记)。
+    自动去除括号补充说明(如 "三叠纪(广东)" → "三叠纪", "佛智芯(广东)" → "佛智芯")。
+    """
+    p = path or DEFAULT_NON_A_LIST
+    if not p.exists():
+        return set()
+    names = set()
+    with open(p, encoding="utf-8") as f:
+        for line in f:
+            m = re.search(r"\|\s*\*\*([^*]+)\*\*\s*\|", line)
+            if m:
+                # 去除括号补充(只保留主体名称)
+                raw = m.group(1).strip()
+                cleaned = re.sub(r"[（(][^）)]*[）)]", "", raw).strip()
+                names.add(cleaned)
+    return names
+
+
+def extract_companies(snippet: str, title: str, whitelist: set = None, non_a_whitelist: set = None) -> set:
     """从标题/摘要中提取可能的公司名(粗略正则 - 需人工核实)
 
     如果提供 whitelist(A 股全名单 set),只保留白名单内的公司名,
     避免误匹配"一群热爱光通信"等描述性短语。
+    如果提供 non_a_whitelist(非 A 股清单 set),额外保留这些公司名。
+    返回 set[name],不区分 A/非 A。
     """
     # 匹配 2-6 字中文 + 常见公司名后缀(覆盖 X公司/X股份/X科/X学/X材/X料/X创/X智/X能/X达/X通/X技/X子 等)
-    pattern = re.compile(r"([\u4e00-\u9fa5]{2,6}(?:公司|股份|集团|光电|科技|技术|电子|通信|激光|新材|半导体|高科|光学|材料|科创|智能|能源|智造|精机|精工|装备|创|智|能|达|通|技|子|网|芯|集成|德|新|特|微|信|动|力|生|源|合|成|品|业))")
+    pattern = re.compile(r"([\u4e00-\u9fa5]{2,6}(?:公司|股份|集团|光电|科技|技术|电子|通信|激光|新材|半导体|高科|光学|材料|科创|智能|能源|智造|精机|精工|装备|创|智|能|达|通|技|子|网|芯|集成|德|新|特|微|信|动|力|生|源|合|成|品|业|纪|学|维|维|体|际|统))")
     text = f"{title} {snippet}"
     companies = set()
     for m in pattern.finditer(text):
         c = m.group(1)
         if 3 <= len(c) <= 8:
             normalized = normalize_company_name(c)
-            if whitelist is None or c in whitelist or normalized in whitelist:
-                companies.add(normalized if normalized in (whitelist or set()) else c)
+            in_a = whitelist and (c in whitelist or normalized in whitelist)
+            in_non_a = non_a_whitelist and (c in non_a_whitelist or normalized in non_a_whitelist)
+            if whitelist is None or in_a or in_non_a:
+                companies.add(normalized if (whitelist and normalized in whitelist) else c)
     return companies
+
+
+def is_non_a_stock(name: str, whitelist: set = None, non_a_whitelist: set = None) -> bool:
+    """判断一个公司名是否属于非 A 股清单"""
+    if not whitelist or not non_a_whitelist:
+        return False
+    normalized = normalize_company_name(name)
+    return (name in non_a_whitelist or normalized in non_a_whitelist) and \
+           not (name in whitelist or normalized in whitelist)
 
 
 DEFAULT_WHITELIST_CACHE = Path.home() / ".cache" / "a-stock-names.json"
@@ -120,7 +158,7 @@ def generate_keywords(topic: str) -> list:
     ]
 
 
-def process_results(results: list, topic: str, slug: str, output_dir: str, whitelist: set = None) -> dict:
+def process_results(results: list, topic: str, slug: str, output_dir: str, whitelist: set = None, non_a_whitelist: set = None) -> dict:
     """处理 web_search 结果,生成 markdown + json 报告"""
     sources = {}
 
@@ -139,10 +177,14 @@ def process_results(results: list, topic: str, slug: str, output_dir: str, white
                 "quality": quality,
             }
 
-    # 提取公司
+    # 提取公司(区分 A 股 vs 非 A 股)
     all_companies = set()
+    non_a_companies = set()
     for s in sources.values():
-        all_companies |= extract_companies(s["snippet"], s["title"], whitelist)
+        for c in extract_companies(s["snippet"], s["title"], whitelist, non_a_whitelist):
+            all_companies.add(c)
+            if is_non_a_stock(c, whitelist, non_a_whitelist):
+                non_a_companies.add(c)
 
     # 分类
     by_category = {}
@@ -186,10 +228,19 @@ def process_results(results: list, topic: str, slug: str, output_dir: str, white
     md += "| 候选公司 | 是否已列入文章 | 决定 |\n"
     md += "|---|---|---|\n"
     for c in sorted(all_companies):
-        md += f"| {c} | 待核实 | 待 Phase 4 数据拉取后决定 |\n"
+        marker = "🟠 非 A 股" if c in non_a_companies else ""
+        md += f"| {c} {marker} | 待核实 | 待 Phase 4 数据拉取后决定 |\n"
     md += "\n"
 
-    md += "## 三、数据来源标注规范\n\n"
+    if non_a_companies:
+        md += "## 三、非 A 股产业链参与者(关键但未上市)\n\n"
+        md += f"> 从 `scripts/non-a-stock-participants.md` 匹配到 **{len(non_a_companies)}** 家。这些公司**不在 A 股白名单**,但属于产业链真正龙头,需在反共识 N 中单独说明。\n\n"
+        md += "| 公司 | 备注 |\n|---|---|\n"
+        for c in sorted(non_a_companies):
+            md += f"| {c} | 详见 scripts/non-a-stock-participants.md |\n"
+        md += "\n"
+
+    md += "## 四、数据来源标注规范\n\n"
     md += "后续正文每个数据点必须标注:**来源 + 质量 + 快照日期**\n\n"
     md += "**示例**:\n\n"
     md += "```markdown\n"
@@ -215,12 +266,14 @@ def process_results(results: list, topic: str, slug: str, output_dir: str, white
             "scanned_at": datetime.now().isoformat(),
             "total_sources": len(sources),
             "mentioned_companies": sorted(all_companies),
+            "non_a_companies": sorted(non_a_companies),
             "sources": list(sources.values()),
         }, f, ensure_ascii=False, indent=2)
 
     return {
         "total_sources": len(sources),
         "mentioned_companies": sorted(all_companies),
+        "non_a_companies": sorted(non_a_companies),
         "markdown": str(out_md),
         "json": str(out_json),
     }
@@ -236,6 +289,8 @@ def main():
     parser.add_argument("--whitelist", help=f"A 股公司名白名单文件路径(JSON list,默认 ~/.cache/a-stock-names.json)")
     parser.add_argument("--setup-whitelist", action="store_true", help="拉取 myMCP stock_basic 全 A 股名单生成白名单")
     parser.add_argument("--no-whitelist", action="store_true", help="禁用白名单过滤(回退到原始正则)")
+    parser.add_argument("--non-a-file", help="非 A 股产业链参与者清单路径(默认 scripts/non-a-stock-participants.md)")
+    parser.add_argument("--include-non-a", action="store_true", help="加载非 A 股清单,扫描时一并标记\"非 A 股但关键\"公司")
     args = parser.parse_args()
 
     # setup-whitelist 模式:拉取 myMCP stock_basic 生成 cache 文件
@@ -286,16 +341,27 @@ def main():
             print(f"⚠️  白名单未生成,使用原始正则(可能误匹配)")
             print(f"   建议运行:python3 scripts/industry-kol-scan.py --setup-whitelist")
 
+    # 加载非 A 股清单
+    non_a_whitelist = None
+    if args.include_non_a:
+        na_path = Path(args.non_a_file) if args.non_a_file else DEFAULT_NON_A_LIST
+        non_a_whitelist = load_non_a_list(na_path)
+        if non_a_whitelist:
+            print(f"✅ 非 A 股清单:{len(non_a_whitelist)} 家公司({na_path})")
+        else:
+            print(f"⚠️  非 A 股清单不存在或为空:{na_path}")
+
     with open(args.input, encoding="utf-8") as f:
         results = json.load(f)
     if isinstance(results, dict) and "results" in results:
         results = results["results"]
 
     print(f"📥 读取 {len(results)} 条搜索结果")
-    summary = process_results(results, args.topic, args.slug, args.output_dir, whitelist=whitelist)
+    summary = process_results(results, args.topic, args.slug, args.output_dir, whitelist=whitelist, non_a_whitelist=non_a_whitelist)
     print(f"✅ 处理完成")
     print(f"   权威源:{summary['total_sources']} 个")
     print(f"   候选公司:{len(summary['mentioned_companies'])} 个(白名单过滤后)")
+    print(f"   非 A 股关键公司:{len(summary.get('non_a_companies', []))} 个")
     print(f"   Markdown:{summary['markdown']}")
     print(f"   JSON:{summary['json']}")
 

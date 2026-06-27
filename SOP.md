@@ -135,7 +135,9 @@ python3 scripts/industry-kol-scan.py --setup-whitelist
 python3 scripts/industry-kol-scan.py \
   --topic "<主题>" \
   --slug <slug> \
-  --input <web_search_results.json>
+  --input <web_search_results.json> \
+  --include-non-a
+# --include-non-a:同时读 scripts/non-a-stock-participants.md,把"非 A 股但关键"的公司一并标出
 # 默认读 ~/.cache/a-stock-names.json 白名单,可加 --no-whitelist 禁用
 # → 输出 drafts/raw/<slug>/00-kol-scan.md + 00-kol-scan.json
 
