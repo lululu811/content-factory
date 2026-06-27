@@ -1,0 +1,2 @@
+Error: MCP tool call failed: Unexpected token 'd', "data:null" is not valid JSON
+  code: 50205 (mcp error)

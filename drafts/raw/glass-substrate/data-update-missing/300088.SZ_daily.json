@@ -1,0 +1,10 @@
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "指定返回字段，不传则返回默认字段。\n默认字段: ts_code, trade_date, open, high, low, close, pre_close, change, pct_chg, vol, amount\n额外可选字段:\n  （所有字段均为默认返回，无需指定）"
+    }
+  },
+  "required": []
+}
+Please check your parameters against this schema and retry.
