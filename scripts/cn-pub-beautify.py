@@ -194,6 +194,102 @@ def extract_summary_from_body(body: str) -> str:
     return ''
 
 
+def parse_section_hooks_from_frontmatter(frontmatter: str) -> list:
+    """从 frontmatter 解析 section_hooks 字段
+
+    期望格式:
+    ```yaml
+    section_hooks:
+      - chapter: "章节标题"
+        hook: "为什么重要的一句话"
+      - chapter: "..."
+        hook: "..."
+    ```
+    """
+    if not frontmatter:
+        return []
+    m = re.search(r'^section_hooks:\s*\n((?:[ \t]+-.+\n(?:[ \t]+.+\n)*)+)', frontmatter, re.MULTILINE)
+    if not m:
+        return []
+    block = m.group(1)
+    hooks = []
+    # 解析每对 chapter / hook
+    lines = block.split('\n')
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        m_chap = re.match(r'[ \t]+-\s+chapter:\s*["\']?(.+?)["\']?\s*$', line)
+        if m_chap:
+            chap = m_chap.group(1).strip()
+            # 下一行是 hook
+            if i + 1 < len(lines):
+                m_hook = re.match(r'[ \t]+hook:\s*["\']?(.+?)["\']?\s*$', lines[i + 1])
+                if m_hook:
+                    hooks.append({'chapter': chap, 'hook': m_hook.group(1).strip()})
+                    i += 2
+                    continue
+        i += 1
+    return hooks
+
+
+def find_chapter_line(body: str, chapter_title: str) -> int:
+    """找到 body 里 ## {chapter_title} 的行号,返回 -1 if没找到
+
+    标题归一化:去掉 ** 加粗(因为 rule_2 关键数字高亮可能加粗章节标题)
+    """
+    target = chapter_title.strip().lstrip('#').strip()
+    # 归一化:去掉 ** 加粗标记
+    target_normalized = target.replace('**', '')
+    lines = body.split('\n')
+    for i, line in enumerate(lines):
+        m = re.match(r'^##\s+(.+?)\s*$', line)
+        if m:
+            # 同样归一化 body 的章节标题
+            body_chap = m.group(1).replace('**', '').strip()
+            if target in body_chap or target_normalized in body_chap:
+                return i
+    return -1
+
+
+def rule_8_section_hooks(frontmatter: str, body: str) -> tuple:
+    """规则 8:章节开头必带 💡 钩子句
+
+    从 frontmatter section_hooks 字段读每章节钩子,插入到 ## 标题后第一个非空段之后。
+    """
+    hooks = parse_section_hooks_from_frontmatter(frontmatter)
+    if not hooks:
+        return body, 0
+
+    lines = body.split('\n')
+    inserted = 0
+    for h in hooks:
+        chap = h['chapter']
+        hook_text = h['hook']
+        # 找到章节行
+        chap_idx = find_chapter_line('\n'.join(lines), chap)
+        if chap_idx < 0:
+            continue
+        # 检查后续是否已经有钩子(避免重复插入)
+        # 钩子格式:> 💡 **为什么重要**:
+        next_5 = '\n'.join(lines[chap_idx + 1:chap_idx + 6])
+        if '💡' in next_5 and '为什么重要' in next_5:
+            continue  # 已有钩子
+        # 插入位置:章节标题后第一个空行
+        insert_idx = chap_idx + 1
+        # 跳过空行
+        while insert_idx < len(lines) and lines[insert_idx].strip() == '':
+            insert_idx += 1
+        # 在 insert_idx 之前插入钩子段
+        hook_lines = [
+            '',
+            f'> 💡 **为什么重要**:{hook_text}',
+            '',
+        ]
+        lines = lines[:insert_idx] + hook_lines + lines[insert_idx:]
+        inserted += 1
+    return '\n'.join(lines), inserted
+
+
 def rule_1_tldr_card(frontmatter: str, body: str) -> tuple:
     """规则 1:开头加 📌 TL;DR 摘要卡片
 
@@ -262,16 +358,20 @@ def warn_missing_patterns(text: str) -> list:
     if long_paragraphs:
         warnings.append(f'⚠️  规则 7:{len(long_paragraphs)} 个段落超过 5 行,建议拆短:{", ".join(long_paragraphs[:3])}')
 
-    # 规则 8:章节钩子(检测 ## 章节下 200 字内有没有 "为什么重要" / "💡" )
+    # 规则 8:章节钩子(检测章节内是否有 💡)
+    # 已经自动应用(规则 8 section_hooks);只在 frontmatter 没配置时警告
+    # 排除附录(以"附录"开头的章节不算主章节)
     sections = re.split(r'\n## ', text)
     missing_hooks = []
     for i, s in enumerate(sections[1:], 1):
-        first_para = s.split('\n\n')[0]
-        if '💡' not in first_para and '为什么重要' not in first_para:
-            title = s.split('\n')[0]
+        title = s.split('\n')[0].strip()
+        if title.startswith('附录') or title.startswith('Appendix'):
+            continue
+        # 章节内任何位置出现 💡 都算有钩子(不再只查 first_para)
+        if '💡' not in s and '为什么重要' not in s:
             missing_hooks.append(title[:20])
-    if len(missing_hooks) > len(sections) // 2:
-        warnings.append(f'⚠️  规则 8:超过一半章节({len(missing_hooks)}/{len(sections)-1})缺钩子句 💡')
+    if missing_hooks:
+        warnings.append(f'⚠️  规则 8:{len(missing_hooks)} 主章节缺钩子句 💡(建议在 frontmatter section_hooks 字段配置):{", ".join(missing_hooks[:5])}')
 
     # 规则 9:文末互动引导
     last_500 = text[-500:]
@@ -317,6 +417,8 @@ def beautify(input_path: str, output_path: str = None) -> dict:
     summary['规则 5 风险 emoji'] = n
     body, n = rule_6_snapshot_date(body)
     summary['规则 6 数据快照'] = n
+    body, n = rule_8_section_hooks(frontmatter, body)
+    summary['规则 8 章节钩子'] = n
     body, n = rule_10_chinese_english_spacing(body)
     summary['规则 10 中英数字间距'] = n
 
