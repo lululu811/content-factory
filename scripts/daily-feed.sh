@@ -191,25 +191,92 @@ else:
 PYEOF
 
 # ─────────────────────────────────────────────
-# 5. 过滤候选（按时长 + 时间）
+# 5. 自建 RSS 源抓取（YouTube/播客/B站）
+# ─────────────────────────────────────────────
+echo ""
+echo "→ 自建 RSS 源抓取"
+RSS_RAW=$WORKDIR/drafts/candidates/rss-feed-$DATE.json
+RSS_META=$WORKDIR/drafts/candidates/rss-feed-$DATE.meta.json
+if python3 $WORKDIR/scripts/rss-feed.py --config $WORKDIR/scripts/rss-channels.json --days 7 --limit 50 --no-enrich --output "$RSS_RAW" --meta "$RSS_META" 2>/dev/null; then
+    RSS_COUNT=$(python3 -c "import json; d=json.load(open('$RSS_RAW')); print(len(d.get('items',[])))")
+    echo "  RSS feed: $RSS_COUNT 条视频"
+    
+    # 合并 RSS 到主 feed（去重）
+    python3 <<PYEOF
+import json
+from pathlib import Path
+
+# 读取主 feed
+with open("$RAW", encoding="utf-8") as f:
+    main_data = json.load(f)
+main_items = main_data.get("items", [])
+main_urls = {it.get("sourceUrl") for it in main_items}
+
+# 读取 RSS feed
+with open("$RSS_RAW", encoding="utf-8") as f:
+    rss_data = json.load(f)
+rss_items = rss_data.get("items", [])
+
+# 合并（去重）
+added = 0
+for item in rss_items:
+    url = item.get("sourceUrl")
+    if url and url not in main_urls:
+        main_items.append(item)
+        main_urls.add(url)
+        added += 1
+
+# 写回主 feed
+main_data["items"] = main_items
+with open("$RAW", "w", encoding="utf-8") as f:
+    json.dump(main_data, f, ensure_ascii=False, indent=2)
+
+print(f"  合并: +{added} 条新视频（去重后）")
+PYEOF
+else
+    echo "  ⚠️ RSS 抓取失败，跳过"
+fi
+
+# ─────────────────────────────────────────────
+# 6. 过滤候选（按时长 + 时间）
 # ─────────────────────────────────────────────
 echo ""
 echo "→ 过滤候选（≥ 20 分钟，过去 7 天）"
 python3 $WORKDIR/scripts/filter-candidates.py --raw "$RAW" --out "$FILTERED" --days 7 --min-duration 1200
 
 # ─────────────────────────────────────────────
-# 6. 输出 Top 10 候选
+# 7. 选题评分 + 输出 Top 10 候选
 # ─────────────────────────────────────────────
 echo ""
+echo "→ 选题评分"
+SCORED=$WORKDIR/drafts/candidates/filtered-$DATE.scored.json
+python3 $WORKDIR/scripts/topic-scorer.py --input "$FILTERED" --top 10 --min-total 30 --output "$SCORED" 2>/dev/null || \
+python3 $WORKDIR/scripts/topic-scorer.py "$FILTERED" --top 10 --min-total 30
+
+echo ""
 echo "════════════════════════════════════════════════════"
-echo "Top 候选（按时长排序，前 10 条）"
+echo "Top 候选（按相关性评分排序，前 10 条）"
 echo "════════════════════════════════════════════════════"
 python3 -c "
-import json
-with open('$FILTERED') as f:
-    data = json.load(f)
+import json, sys
+try:
+    with open('$SCORED') as f:
+        data = json.load(f)
+except:
+    with open('$FILTERED') as f:
+        data = json.load(f)
 if not data:
     print('  (空)')
-for x in sorted(data, key=lambda x: -x['sec'])[:10]:
-    print(f\"  {x['minute']:5.1f}min | {x['channelTitle']:18s} | {x['title'][:80]}\")
+    sys.exit(0)
+# 兼容 scored 格式（有 total 字段）和 filtered 格式
+for x in data[:10]:
+    score = x.get('total', '?')
+    title = x.get('title', '')[:70]
+    ch = x.get('channel', x.get('channelTitle', ''))
+    minute = x.get('minute', 0)
+    mocs = x.get('mocs', [])
+    moc_str = ', '.join(mocs) if mocs else '-'
+    print(f'  {score:>3} 分 | {minute:5.1f}min | {ch:18s} | {title}')
+    if mocs:
+        print(f'        MOC: {moc_str}')
 "
