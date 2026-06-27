@@ -1,0 +1,35 @@
+Error: MCP tool returned an error result.
+HTTP 错误: Server error '502 Bad Gateway' for url 'http://api.tushare.pro/dataapi'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/502
+
+[mavis hint] Tool call failed. Here is the correct schema for `daily`:
+{
+  "type": "object",
+  "properties": {
+    "ts_code": {
+      "type": "string",
+      "description": "股票代码（支持多个股票同时提取，逗号分隔）"
+    },
+    "end_date": {
+      "type": "string",
+      "description": "结束日期(YYYYMMDD)"
+    },
+    "start_date": {
+      "type": "string",
+      "description": "开始日期(YYYYMMDD)"
+    },
+    "trade_date": {
+      "type": "string",
+      "description": "交易日期（YYYYMMDD）"
+    },
+    "fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "指定返回字段，不传则返回默认字段。\n默认字段: ts_code, trade_date, open, high, low, close, pre_close, change, pct_chg, vol, amount\n额外可选字段:\n  （所有字段均为默认返回，无需指定）"
+    }
+  },
+  "required": []
+}
+Please check your parameters against this schema and retry.

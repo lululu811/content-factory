@@ -1,0 +1,150 @@
+{
+  "topic": "CPO 光通信",
+  "slug": "glass-bridge-cpo",
+  "scanned_at": "2026-06-27T13:29:59.034727",
+  "total_sources": 15,
+  "mentioned_companies": [
+    "中京电子",
+    "中天科技",
+    "亨通光电",
+    "光库科技",
+    "光迅科技",
+    "剑桥科技",
+    "华天科技",
+    "华工科技",
+    "博创科技",
+    "天孚通信",
+    "安孚科技",
+    "斯瑞新材",
+    "新型光学封装技术",
+    "永鼎股份",
+    "沃格光电",
+    "源杰科技",
+    "生益电子",
+    "联特科技",
+    "腾景科技",
+    "致尚科技"
+  ],
+  "sources": [
+    {
+      "title": "CPO 概念股大汇总",
+      "snippet": "中京电子 沃格光电 安孚科技 中兴通讯 联特科技 光库科技 中际旭创 剑桥科技 华天科技 光迅科技 仕佳光子 星网锐捷 腾景科技 天孚通信 德科立",
+      "source": "企鹅号",
+      "link": "https://企鹅号/",
+      "category": "专业垂直媒体",
+      "quality": "🟢"
+    },
+    {
+      "title": "CPO 8大龙头股 一文梳理",
+      "snippet": "天孚通信 中际旭创 新易盛 锐捷网络 亨通光电 源杰科技 光迅科技 联特科技 剑桥科技 博创科技",
+      "source": "今日头条",
+      "link": "https://今日头条/",
+      "category": "专业垂直媒体",
+      "quality": "🟢"
+    },
+    {
+      "title": "CPO 概念梳理",
+      "snippet": "源杰科技 光库科技 博创科技 新易盛 天孚通信 仕佳光子 太辰光 剑桥科技 罗博特科 致尚科技 德科立",
+      "source": "雪球",
+      "link": "https://雪球/",
+      "category": "专业垂直媒体",
+      "quality": "🟢"
+    },
+    {
+      "title": "CPO 被严重低估的5家公司",
+      "snippet": "天孚通信 中际旭创 新易盛 锐捷网络 亨通光电 源杰科技",
+      "source": "网易",
+      "link": "https://网易/",
+      "category": "专业垂直媒体",
+      "quality": "🟢"
+    },
+    {
+      "title": "康宁 Glass Bridge 玻璃桥 CPO 量产",
+      "snippet": "6月24日 康宁首尔发布Glass Bridge 玻璃桥 直接连接 PIC 光子芯片 光纤",
+      "source": "企鹅号",
+      "link": "https://企鹅号/",
+      "category": "专业垂直媒体",
+      "quality": "🟢"
+    },
+    {
+      "title": "康宁 Glass Bridge 补 CPO 量产最后拼图",
+      "snippet": "康宁 玻璃桥 下一代CPO架构 台积电 玻璃基板 英特尔 全球首款玻璃芯载板",
+      "source": "企鹅号",
+      "link": "https://企鹅号/",
+      "category": "专业垂直媒体",
+      "quality": "🟢"
+    },
+    {
+      "title": "康宁 玻璃基板又有新招",
+      "snippet": "GlassBridge 玻璃桥 玻璃光连接器 玻璃通孔 TGV 京东⽅ 9.93亿试验线",
+      "source": "企鹅号",
+      "link": "https://企鹅号/",
+      "category": "专业垂直媒体",
+      "quality": "🟢"
+    },
+    {
+      "title": "CPO 引领下的光器件光芯片光模块概念梳理",
+      "snippet": "光器件板块 天孚通信 光芯片 源杰科技 光模块 剑桥科技 LPO 新易盛 铌酸锂 光库科技 1.6T光模块 剑桥科技 设备集成商 中兴通讯",
+      "source": "今日头条",
+      "link": "https://今日头条/",
+      "category": "专业垂直媒体",
+      "quality": "🟢"
+    },
+    {
+      "title": "CPO 共封装光学最新 8 大核心龙头股",
+      "snippet": "天孚通信 中际旭创 新易盛 锐捷网络 亨通光电 源杰科技 光迅科技 联特科技",
+      "source": "今日头条",
+      "link": "https://今日头条/",
+      "category": "专业垂直媒体",
+      "quality": "🟢"
+    },
+    {
+      "title": "最全 CPO 上市企业汇总",
+      "snippet": "仕佳光子 天孚通信 太辰光 源杰科技 兆龙互连 长光华芯 永鼎股份 光迅科技 光库科技 博创科技 中际旭创 斯瑞新材 新易盛 德科立 凌云光 剑桥科技 华工科技 中天科技 生益电子",
+      "source": "微博",
+      "link": "https://微博/",
+      "category": "专业垂直媒体",
+      "quality": "🟢"
+    },
+    {
+      "title": "半导体行业观察 Glass Bridge 玻璃桥",
+      "snippet": "康宁发布Glass Bridge玻璃桥 直接连接PIC和光纤",
+      "source": "半导体行业观察",
+      "link": "https://半导体行业观察/",
+      "category": "专业垂直媒体",
+      "quality": "🟢"
+    },
+    {
+      "title": "一文读懂CPO 技术",
+      "snippet": "CPO 共封装光学 新型光学封装技术",
+      "source": "搜狐",
+      "link": "https://搜狐/",
+      "category": "专业垂直媒体",
+      "quality": "🟢"
+    },
+    {
+      "title": "康宁 Glass Bridge 概念股",
+      "snippet": "玻璃桥 玻璃光互连 概念股",
+      "source": "东方财富网",
+      "link": "https://东方财富网/",
+      "category": "通用财经媒体",
+      "quality": "🟡"
+    },
+    {
+      "title": "SEMI 大半导体产业网 康宁 Glass Bridge",
+      "snippet": "康宁 GlassBridge 玻璃基板 半导体封装",
+      "source": "SEMI",
+      "link": "https://SEMI/",
+      "category": "专业垂直媒体",
+      "quality": "🟢"
+    },
+    {
+      "title": "讯石光通讯网 康宁 Glass Bridge",
+      "snippet": "康宁 GlassBridge 玻璃光互连 CPO 玻璃基板",
+      "source": "讯石光通讯网",
+      "link": "https://讯石/",
+      "category": "专业垂直媒体",
+      "quality": "🟢"
+    }
+  ]
+}
