@@ -12,6 +12,15 @@ sources:
     - 大摩闭门会 · 存储与 MLCC · 2026-06-12
     - 英飞凌狂砸百亿扩产 · 2026-06-21
     - 中国 AI 芯片三强争霸 · 2026-06
+
+# TL;DR 摘要卡片(公众号规则 1)
+tldr:
+  one_liner: "AI 算力下半场瓶颈已从 GPU/HBM 转移到国产 AI GPU + 功率半导体 + MLCC 三个被低估的卡点。"
+  key_data:
+    - "国产 AI GPU 替代率:41% → 86%(2026 H1 预测)"
+    - "MLCC 用量:AI 服务器 5-10 倍,村田涨价 15-35%"
+    - "功率半导体:英飞凌涨价 + GaN 专利战同步升温"
+
 interview:
   platform: bilibili
   video_id: BV1yFj262EzD
@@ -49,9 +58,52 @@ data_verified:
     - "300408.SZ 三环集团 (2026 Q1 营收 26.81 亿 +46%)"
     - "000636.SZ 风华高科 (2026/5 涨停)"
     - "600460.SH 士兰微 (2025 营收 130.52 亿, 全球第十 2.6%)"
+
+research_reports:
+  queried_at: "2026-06-25"
+  found_concepts: 10
+  read_concepts: 5
+  linked_concepts:
+    - name: "国产算力"
+      path: "wiki/concepts/国产算力.md"
+      used_for: "国产 AI GPU 三强争霸"
+    - name: "国产替代"
+      path: "wiki/concepts/国产替代.md"
+      used_for: "国产替代主线"
+    - name: "MLCC涨价周期"
+      path: "wiki/concepts/MLCC涨价周期.md"
+      used_for: "MLCC 是下一个存储"
+    - name: "功率半导体"
+      path: "wiki/concepts/功率半导体.md"
+      used_for: "IGBT / 氮化镓涨价传导"
+    - name: "AI算力硬件"
+      path: "wiki/concepts/AI算力硬件.md"
+      used_for: "AI 算力硬件总览"
+  linked_sources:
+    - date: "2025-12-05"
+      path: "wiki/sources/摘要-2025-12-05-AI链更新-国产算力摩尔沐曦.md"
+      used_for: "国产算力 + 摩尔 / 沐曦 + 光通信 + AI电力"
+    - date: "2026-05-05"
+      path: "wiki/sources/AI链国产算力更新-2026-05-05.md"
+      used_for: "国产算力更新"
+    - date: "2025-06-20"
+      path: "wiki/sources/半导体更新-6月20日.md"
+      used_for: "长鑫 HBM3 + 盛合晶微 IPO + 兆易港股"
+  skipped_reason: ""
 ---
+**research-reports 上下文**:本文主题直接对应 research-reports 的 [[国产算力]] / [[MLCC 涨价周期]] / [[功率半导体]] 等核心概念,详见 frontmatter `research_reports` 字段。
+
 
 # AI 算力下半场：3 个被低估的新卡点
+
+
+> 📌 **TL;DR 一句话版**:
+> AI 算力下半场瓶颈已从 GPU/HBM 转移到国产 AI GPU + 功率半导体 + MLCC 三个被低估的卡点。
+>
+> 🔢 **关键数据**:
+> - 国产 AI GPU 替代率:**41%** → 86%(2026 H1 预测)
+> - MLCC 用量:AI 服务器 5-10 倍,村田涨价 15-**35%**
+> - 功率半导体:英飞凌涨价 + GaN 专利战同步升温
 
 > **一句话核心**：上半场算力瓶颈（GPU + HBM）已被充分定价，**下半场瓶颈正在形成**——国产 AI GPU（41% → 86%）、功率半导体（英飞凌涨价 + GaN 专利战）、MLCC（AI 用量 5-10 倍 + 村田涨价 15-35%）三个被市场严重低估的新卡点。
 
@@ -87,11 +139,11 @@ data_verified:
 
 ### 2.1 下半场瓶颈的"三个事实"
 
-**事实 1：英伟达中国市占归零，国产 AI 芯片 2025 已占 41%**
+**事实 1：英伟达中国市占归零，国产 AI 芯片 2025 已占 **41%****
 
 > **访谈引用 · IDC China AI Accelerator Tracker · 2025**
 
-> 🇺🇸 **[EN]** *"In 2025, China's AI accelerator market shipped approximately 4 million units: Nvidia at 55%, Huawei Ascend at 20%, Alibaba T-Head at 7%, AMD at 4%, Baidu Kunlun at 3%, and other domestic chips at 11% — domestic share reached 41%"*
+> 🇺🇸 **[EN]** *"In 2025, China's AI accelerator market shipped approximately 4 million units: Nvidia at **55%**, Huawei Ascend at 20%, Alibaba T-Head at 7%, AMD at 4%, Baidu Kunlun at 3%, and other domestic chips at 11% — domestic share reached 41%"*
 
 > 🇨🇳 **[CN]** 「2025 中国 AI 加速器市场出货约 400 万张：英伟达 55%、华为昇腾 20%、阿里平头哥 7%、AMD 4%、百度昆仑芯 3%、其他国产 11%——**国产芯片合计占比 41%**。」
 
@@ -107,7 +159,7 @@ data_verified:
 
 > **证据等级**：🟢 L1（独立信源 + 英飞凌官方公告）
 
-**事实 3：AI 服务器 MLCC 用量 5-10 倍，村田涨价 15-35%**
+**事实 3：AI 服务器 MLCC 用量 5-10 倍，村田涨价 15-**35%****
 
 > **访谈引用 · TrendForce 集邦咨询 2026/6 报告**
 
@@ -129,9 +181,9 @@ data_verified:
 
 > **访谈引用 · 大摩 VR200 NVL72 BOM 拆解报告 · 2026 H1**
 
-> 🇺🇸 **[EN]** *"VR200 per-rack MLCC value increased 182% compared to GB300, second only to memory (+233%) and PCB"*
+> 🇺🇸 **[EN]** *"VR200 per-rack MLCC value increased **182%** compared to GB300, second only to memory (+233%) and PCB"*
 
-> 🇨🇳 **[CN]** 「VR200 每机架 MLCC 总价值较 GB300 大增 182%，这一增幅仅次于内存（+233%）和 PCB。」
+> 🇨🇳 **[CN]** 「VR200 每机架 MLCC 总价值较 GB300 大增 **182%**，这一增幅仅次于内存（+233%）和 PCB。」
 
 > **证据等级**：🟢 L1（独立信源 + 大摩公开研报）
 
@@ -139,7 +191,7 @@ data_verified:
 
 ## 三、3 大赛道总览
 
-![中国 AI 加速器市场格局](publish/images/ai-gpu-power-mlcc/images/01-ai-gpu-market-share.png)
+![中国 AI 加速器市场格局](publish/images/ai-gpu-power-mlcc/charts/01-ai-gpu-market-share.png)
 
 > **图 1**：2025 中国 AI 加速器市场：英伟达 55%（220 万张），国产 41%（165 万张），其他 4%。**国产化率 41% 已经确认拐点**，2026E 冲刺 50-80%。
 
@@ -147,15 +199,15 @@ data_verified:
 
 ### 3.1 赛道一 · 国产 AI GPU（核心主线）
 
-**核心叙事**：英伟达退潮（2022 H100 禁运 → 2024 H20 限速 → 2025 完全退出）→ 国产芯片从 0% 起步 → 2025 41% → 2026 50-80% → 2030 86% 自给率。
+**核心叙事**：英伟达退潮（2022 H100 禁运 → 2024 H20 限速 → 2025 完全退出）→ 国产芯片从 **0%** 起步 → 2025 41% → 2026 50-80% → 2030 86% 自给率。
 
 **核心数据**：
 
 > **访谈引用 · 大摩《中国 AI 2.0》报告 · 2026 H1**
 
-> 🇺🇸 **[EN]** *"China's semiconductor self-sufficiency will rise from 4% in 2025 to 86% in 2030"*
+> 🇺🇸 **[EN]** *"China's semiconductor self-sufficiency will rise from **4%** in 2025 to 86% in 2030"*
 
-> 🇨🇳 **[CN]** 「到 2030 年，中国半导体自给率将从 2025 年的 4% 提升至 86%。」
+> 🇨🇳 **[CN]** 「到 2030 年，中国半导体自给率将从 2025 年的 **4%** 提升至 86%。」
 
 > **证据等级**：🟢 L1（独立信源 + 大摩公开研报）
 
@@ -178,9 +230,9 @@ data_verified:
 
 > **访谈引用 · 大摩《中国 AI 2.0》报告 · 2026 H1**
 
-> 🇺🇸 **[EN]** *"Huawei maintains more than 50% share in local AI chips"*
+> 🇺🇸 **[EN]** *"Huawei maintains more than **50%** share in local AI chips"*
 
-> 🇨🇳 **[CN]** 「华为在本地 AI 芯片中份额保持 50% 以上。」
+> 🇨🇳 **[CN]** 「华为在本地 AI 芯片中份额保持 **50%** 以上。」
 
 > **证据等级**：🟢 L1
 
@@ -188,13 +240,13 @@ data_verified:
 
 > 🇺🇸 **[EN]** *"Huawei targets US$12 billion in AI chip sales as China firms seek Nvidia alternatives"*
 
-> 🇨🇳 **[CN]** 「华为目标 AI 芯片销售 120 亿美元，因为中国厂商寻求英伟达替代品。」
+> 🇨🇳 **[CN]** 「华为目标 AI 芯片销售 **120 亿**美元，因为中国厂商寻求英伟达替代品。」
 
 > **证据等级**：🟢 L1
 
 ### 3.2 赛道二 · 功率半导体（逆势宝藏）
 
-**核心叙事**：英飞凌涨价（2026/4 确认 AI 需求传导）+ 英诺赛科 vs 英飞凌 GaN 专利战完胜（2026/6 中国市场 GaN 国产替代加速）+ 士兰微进入全球前十（2.6%）= "涨价 + 国产替代"双击窗口。
+**核心叙事**：英飞凌涨价（2026/4 确认 AI 需求传导）+ 英诺赛科 vs 英飞凌 GaN 专利战完胜（2026/6 中国市场 GaN 国产替代加速）+ 士兰微进入全球前十（**2.6%**）= "涨价 + 国产替代"双击窗口。
 
 **核心数据**：
 
@@ -208,9 +260,9 @@ data_verified:
 
 > **访谈引用 · 英飞凌 2023 财报 · 全球功率市场数据**
 
-> 🇺🇸 **[EN]** *"Silan Micro (士兰微) entered the global top 10 power semiconductor companies with 2.6% market share"*
+> 🇺🇸 **[EN]** *"Silan Micro (士兰微) entered the global top 10 power semiconductor companies with **2.6%** market share"*
 
-> 🇨🇳 **[CN]** 「士兰微以 2.6% 市占率进入全球前十大功率半导体公司。」
+> 🇨🇳 **[CN]** 「士兰微以 **2.6%** 市占率进入全球前十大功率半导体公司。」
 
 > **证据等级**：🟢 L1
 
@@ -222,15 +274,15 @@ data_verified:
 
 ### 3.3 赛道三 · MLCC（全新赛道）
 
-**核心叙事**：AI 服务器单机用量 5-10 倍（部分型号 100 倍）+ 村田涨价 15-35% + 三星电机涨价 20% + 中国高端 MLCC 国产化率 < 20% = "下一个存储"级机会。
+**核心叙事**：AI 服务器单机用量 5-10 倍（部分型号 100 倍）+ 村田涨价 15-**35%** + 三星电机涨价 20% + 中国高端 MLCC 国产化率 < 20% = "下一个存储"级机会。
 
 **核心数据**：
 
 > **访谈引用 · 中国电子元件行业协会 2026 H1 数据**
 
-> 🇺🇸 **[EN]** *"China's high-end MLCC import rate exceeds 70%, with photolithography gas and fluorine-based etching gas at over 90%"*
+> 🇺🇸 **[EN]** *"China's high-end MLCC import rate exceeds **70%**, with photolithography gas and fluorine-based etching gas at over 90%"*
 
-> 🇨🇳 **[CN]** 「中国高端 MLCC 进口率超 70%，其中光刻气、氟基蚀刻气等关键品种进口率更是高达 90%。」
+> 🇨🇳 **[CN]** 「中国高端 MLCC 进口率超 **70%**，其中光刻气、氟基蚀刻气等关键品种进口率更是高达 90%。」
 
 > **证据等级**：🟢 L1（独立信源 + 中国电子元件行业协会）
 
@@ -252,7 +304,7 @@ data_verified:
 
 ## 四、被低估的真正卡点 1：国产 AI GPU 三强争霸
 
-![中国半导体自给率路径](publish/images/ai-gpu-power-mlcc/images/04-domestic-target-path.png)
+![中国半导体自给率路径](publish/images/ai-gpu-power-mlcc/charts/04-domestic-target-path.png)
 
 > **图 4**：大摩《中国 AI 2.0》报告路径——2025 自给率 4% → 2030 自给率 86%。这是**国产 AI GPU 86% 自给率红利**的核心叙事。
 
@@ -260,7 +312,7 @@ data_verified:
 
 ### 4.1 卡住环节：训练 vs 推理，谁是 2026 H2 主战场？
 
-> **中等证据 🟡 L2 行业研报**：国产 AI GPU 2026 国产化率冲刺 50-80%（IDC 2025 + 大摩 6/23 闭门会综合预期）。中国 AI 芯片 TAM 2030E 约 670 亿美元（大摩预测）。中国 AI 云 CAGR 72%（2024-2029E，大摩）。
+> **中等证据 🟡 L2 行业研报**：国产 AI GPU 2026 国产化率冲刺 50-**80%**（IDC 2025 + 大摩 6/23 闭门会综合预期）。中国 AI 芯片 TAM 2030E 约 **670 亿**美元（大摩预测）。中国 AI 云 CAGR 72%（2024-2029E，大摩）。
 
 **市场误判**：市场认为"国产 AI 芯片只能做推理，做不了训练"。
 
@@ -338,7 +390,7 @@ data_verified:
 
 ## 五、被低估的真正卡点 2：功率半导体涨价 + 国产替代
 
-![功率半导体涨价传导时间线](publish/images/ai-gpu-power-mlcc/images/03-power-price-timeline.png)
+![功率半导体涨价传导时间线](publish/images/ai-gpu-power-mlcc/charts/03-power-price-timeline.png)
 
 > **图 3**：英飞凌涨价（2026/4）→ 国产替代传导 → GaN 专利战（2026/6）→ 2030 国产替代兑现。**涨价 + 国产替代双击窗口**。
 
@@ -370,13 +422,13 @@ data_verified:
 
 > **证据等级**：🟢 L1
 
-**关键节点 3：GaN 在 AI 电源效率比硅基高 30%+**
+**关键节点 3：GaN 在 AI 电源效率比硅基高 **30%**+**
 
 > **访谈引用 · Infineon / Innoscience 2026/6 公开资料**
 
-> 🇺🇸 **[EN]** *"GaN-based power supplies for AI data centers demonstrate 30%+ higher efficiency than silicon-based"*
+> 🇺🇸 **[EN]** *"GaN-based power supplies for AI data centers demonstrate **30%**+ higher efficiency than silicon-based"*
 
-> 🇨🇳 **[CN]** 「GaN 基 AI 数据中心电源效率比硅基高 30% 以上。」
+> 🇨🇳 **[CN]** 「GaN 基 AI 数据中心电源效率比硅基高 **30%** 以上。」
 
 > **证据等级**：🟢 L1
 
@@ -440,7 +492,7 @@ data_verified:
 
 ## 六、被低估的真正卡点 3：MLCC 是"下一个存储"
 
-![AI 服务器 MLCC 用量对比](publish/images/ai-gpu-power-mlcc/images/02-mlcc-usage-comparison.png)
+![AI 服务器 MLCC 用量对比](publish/images/ai-gpu-power-mlcc/charts/02-mlcc-usage-comparison.png)
 
 > **图 2**：传统服务器 1 → GB200 单板 6,500 → Rubin 单板 12,000 → VR200 NVL72 整机 60 万颗。**AI 服务器 MLCC 用量是传统的 5-10 倍**。
 
@@ -476,19 +528,19 @@ data_verified:
 
 > **访谈引用 · TrendForce 集邦咨询 2026/6 报告**
 
-> 🇺🇸 **[EN]** *"Nvidia VR200 NVL72 server uses approximately 600,000 MLCC, 30%+ higher than GB300 platform"*
+> 🇺🇸 **[EN]** *"Nvidia VR200 NVL72 server uses approximately 600,000 MLCC, **30%**+ higher than GB300 platform"*
 
-> 🇨🇳 **[CN]** 「英伟达 VR200 NVL72 服务器整机将使用约 60 万个 MLCC，比 GB300 平台高 30% 以上。」
+> 🇨🇳 **[CN]** 「英伟达 VR200 NVL72 服务器整机将使用约 60 万个 MLCC，比 GB300 平台高 **30%** 以上。」
 
 > **证据等级**：🟢 L1
 
-**关键数字 4：村田涨价 15-35%**
+**关键数字 4：村田涨价 15-**35%****
 
 > **访谈引用 · 村田 2026/2 涨价函 · 官方**
 
-> 🇺🇸 **[EN]** *"Murata will raise prices by 15-35% on AI server and high-end automotive MLCC products starting April"*
+> 🇺🇸 **[EN]** *"Murata will raise prices by 15-**35%** on AI server and high-end automotive MLCC products starting April"*
 
-> 🇨🇳 **[CN]** 「村田将自 4 月起对 AI 服务器和高端车规级 MLCC 产品全面涨价 15%-35%。」
+> 🇨🇳 **[CN]** 「村田将自 4 月起对 AI 服务器和高端车规级 MLCC 产品全面涨价 **15%**-35%。」
 
 > **证据等级**：🟢 L1
 
@@ -512,23 +564,23 @@ data_verified:
 
 > **证据等级**：🟢 L1
 
-### 6.2 国产化率 < 20%，3-5 年翻倍空间
+### 6.2 国产化率 < **20%**，3-5 年翻倍空间
 
-> **中等证据 🟡 L2 行业预测**：全球 MLCC 市场规模 2026E 262.5 亿美元 / 2030E 659.5 亿美元（弗若斯特沙利文预测，CAGR 10.9%）。中国 MLCC 进口金额 2025 61.79 亿美元（行业数据）。
+> **中等证据 🟡 L2 行业预测**：全球 MLCC 市场规模 2026E **262.5 亿**美元 / 2030E **659.5 亿**美元（弗若斯特沙利文预测，CAGR **10.9%**）。中国 MLCC 进口金额 2025 61.79 亿美元（行业数据）。
 
 > **访谈引用 · 中国电子元件行业协会 2026 H1 数据**
 
-> 🇺🇸 **[EN]** *"China's high-end MLCC import rate exceeds 70%, with photolithography gas and fluorine-based etching gas at over 90%"*
+> 🇺🇸 **[EN]** *"China's high-end MLCC import rate exceeds **70%**, with photolithography gas and fluorine-based etching gas at over 90%"*
 
-> 🇨🇳 **[CN]** 「中国高端 MLCC 进口率超 70%，其中光刻气、氟基蚀刻气等关键品种进口率更是高达 90%。」
+> 🇨🇳 **[CN]** 「中国高端 MLCC 进口率超 **70%**，其中光刻气、氟基蚀刻气等关键品种进口率更是高达 90%。」
 
 > **证据等级**：🟢 L1
 
 > **访谈引用 · 中国电子元件行业协会 2026 H1 数据**
 
-> 🇺🇸 **[EN]** *"Japan's Murata holds about 31% global share, Korea's Samsung Electro-Mechanics about 23%, Japan's Taiyo Yuden about 10%"*
+> 🇺🇸 **[EN]** *"Japan's Murata holds about **31%** global share, Korea's Samsung Electro-Mechanics about 23%, Japan's Taiyo Yuden about 10%"*
 
-> 🇨🇳 **[CN]** 「日本村田占全球约 31% 份额，韩国三星电机约 23%，日本太阳诱电约 10%。」
+> 🇨🇳 **[CN]** 「日本村田占全球约 **31%** 份额，韩国三星电机约 23%，日本太阳诱电约 10%。」
 
 > **证据等级**：🟢 L1
 
@@ -536,9 +588,9 @@ data_verified:
 
 > **访谈引用 · 大摩 VR200 NVL72 BOM 拆解报告 · 2026 H1**
 
-> 🇺🇸 **[EN]** *"VR200 per-rack MLCC value increased 182% compared to GB300, second only to memory (+233%) and PCB"*
+> 🇺🇸 **[EN]** *"VR200 per-rack MLCC value increased **182%** compared to GB300, second only to memory (+233%) and PCB"*
 
-> 🇨🇳 **[CN]** 「VR200 每机架 MLCC 总价值较 GB300 大增 182%，这一增幅仅次于内存（+233%）和 PCB。」
+> 🇨🇳 **[CN]** 「VR200 每机架 MLCC 总价值较 GB300 大增 **182%**，这一增幅仅次于内存（+233%）和 PCB。」
 
 > **证据等级**：🟢 L1
 
@@ -659,7 +711,7 @@ data_verified:
 | 2 | **紫光国微** | 002049.SZ | FPGA | 国产替代早期 |
 | 3 | **国芯科技** | 688262.SH | 国产 IP | 7nm 工艺依赖 |
 
-> **共性风险**：介质粉体（高端 75% 依赖日本）、EDA 工具（Synopsys / Cadence 垄断）、高端光刻机（ASML 垄断）。
+> **共性风险**：介质粉体（高端 **75%** 依赖日本）、EDA 工具（Synopsys / Cadence 垄断）、高端光刻机（ASML 垄断）。
 
 ### 7.5 Story（蹭概念 · 5 家）
 
@@ -819,22 +871,22 @@ data_verified:
 
 ### 升级信号（alpha 兑现信号）
 
-🟢 **寒武纪 2026 Q2 营收 > 30 亿**：2026 Q1 营收 15.15 亿，Q2 若兑现 30 亿+，验证 +453% 增速可持续
-🟢 **海光 2026 H1 DCU 营收占比 > 25%**：DCU 业务对标 NVIDIA GPU，2026 H1 占比若突破 25%，双轮驱动确立
-🟢 **士兰微 2026 H1 毛利率 > 25%**：2025 毛利率约 22%，H1 若突破 25%，涨价传导验证
-🟢 **三环 / 风华 2026 Q2 MLCC 出货 +50%**：Q1 已 +46%，Q2 若延续，MLCC 超级周期兑现
+🟢 **寒武纪 2026 Q2 营收 > 30 亿**：2026 Q1 营收 **15.15 亿**，Q2 若兑现 **30 亿**+，验证 +**453%** 增速可持续
+🟢 **海光 2026 H1 DCU 营收占比 > **25%****：DCU 业务对标 NVIDIA GPU，2026 H1 占比若突破 25%，双轮驱动确立
+🟢 **士兰微 2026 H1 毛利率 > **25%****：2025 毛利率约 22%，H1 若突破 25%，涨价传导验证
+🟢 **三环 / 风华 2026 Q2 MLCC 出货 +**50%****：Q1 已 +46%，Q2 若延续，MLCC 超级周期兑现
 🟢 **英诺赛科 GaN 出货 > 5000 万颗**：2025 年出货约 3000 万颗，2026 H2 若 > 5000 万颗，GaN 国产替代兑现
 
 ### 降级信号（判断需修正）
 
-🔴 **寒武纪 2026 H1 净利 < 15 亿**：相比 2025 全年 20.59 亿，H1 若低于 15 亿说明业绩后劲不足
+🔴 **寒武纪 2026 H1 净利 < 15 亿**：相比 2025 全年 **20.59 亿**，H1 若低于 **15 亿**说明业绩后劲不足
 🔴 **英飞凌 2026 H2 反向降价**：如果英飞凌 GaN 专利上诉翻盘或反向降价，国产 GaN 逻辑破裂
 🔴 **MLCC 村田 / 三星电机反向降价**：如果 AI 需求不达预期，村田 / 三星反向降价，MLCC 超级周期不成立
-🔴 **国产 AI GPU 渗透率 2026 末 < 50%**：大摩 50-80% 预期若 < 50%，86% 自给率路径受挫
+🔴 **国产 AI GPU 渗透率 2026 末 < **50%****：大摩 50-80% 预期若 < 50%，86% 自给率路径受挫
 
 ### 风险 1：寒武纪估值贵（市值/盈利 ~215x）
 
-寒武纪市值 4434 亿 / 2025 净利 20.59 亿 = **215x 市盈率**。如果 2026 业绩不达预期，估值杀 50% 不奇怪。
+寒武纪市值 **4434 亿** / 2025 净利 **20.59 亿** = **215x 市盈率**。如果 2026 业绩不达预期，估值杀 **50%** 不奇怪。
 
 ### 风险 2：海光 x86 授权风险
 
@@ -842,15 +894,15 @@ data_verified:
 
 ### 风险 3：MLCC 高端粉体仍依赖日本
 
-中国高端 MLCC 进口率超 70%，**介质粉体 75% 来自日本**。如果日本对华管制反制，国产 MLCC 高端化受阻。
+中国高端 MLCC 进口率超 **70%**，**介质粉体 75% 来自日本**。如果日本对华管制反制，国产 MLCC 高端化受阻。
 
 ### 风险 4：GaN 渗透率仍低
 
-GaN 在 AI 数据中心电源渗透率 2026 H1 仍 < 10%。**GaN 概念股短期已被炒作，长期需要看实际渗透率提升**。
+GaN 在 AI 数据中心电源渗透率 2026 H1 仍 < **10%**。**GaN 概念股短期已被炒作，长期需要看实际渗透率提升**。
 
 ### 风险 5：英伟达可能卷土重来
 
-如果中美关系缓和，**英伟达 H20 / B30 重新进入中国市场**，国产 AI 芯片 86% 自给率预期可能下调。
+如果中美关系缓和，**英伟达 H20 / B30 重新进入中国市场**，国产 AI 芯片 **86%** 自给率预期可能下调。
 
 ### 风险 6：功率半导体涨价可持续性
 
@@ -876,13 +928,13 @@ GaN 在 AI 数据中心电源渗透率 2026 H1 仍 < 10%。**GaN 概念股短期
 
 ## 总结：下半场瓶颈的三个 alpha
 
-![三大赛道 Alpha 仪表盘](publish/images/ai-gpu-power-mlcc/images/05-summary-dashboard.png)
+![三大赛道 Alpha 仪表盘](publish/images/ai-gpu-power-mlcc/charts/05-summary-dashboard.png)
 
 > **图 5**：AI 算力下半场 · 三大赛道 Alpha 仪表盘（数据 + 拐点 + 升降级信号 + Top 3 标的）。
 
 
 
-**alpha 1：国产 AI GPU 三强争霸（86% 自给率红利）**
+**alpha 1：国产 AI GPU 三强争霸（**86%** 自给率红利）**
 - 寒武纪从亏损到盈利的拐点
 - 海光信息的 CPU + DCU 双轮驱动
 - 华为产业链的间接 alpha
@@ -901,9 +953,9 @@ GaN 在 AI 数据中心电源渗透率 2026 H1 仍 < 10%。**GaN 概念股短期
 
 > **访谈引用 · Morgan Stanley《China AI 2.0》Closing Note · 2026 H1**
 
-> 🇺🇸 **[EN]** *"Of the three bottlenecks, MLCC offers the cleanest risk-reward: capacity is constrained, demand visibility is strong, and Chinese supply share is < 20%"*
+> 🇺🇸 **[EN]** *"Of the three bottlenecks, MLCC offers the cleanest risk-reward: capacity is constrained, demand visibility is strong, and Chinese supply share is < **20%**"*
 
-> 🇨🇳 **[CN]** 「三个瓶颈中，MLCC 提供最清晰的风险收益比：产能受限，需求可见度高，中国供应份额 < 20%。」
+> 🇨🇳 **[CN]** 「三个瓶颈中，MLCC 提供最清晰的风险收益比：产能受限，需求可见度高，中国供应份额 < **20%**。」
 
 > **证据等级**：🟢 L1（独立信源 + 大摩闭门会 closing 总结）
 
