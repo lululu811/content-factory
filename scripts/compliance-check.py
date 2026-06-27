@@ -431,7 +431,7 @@ def check_16_data_verified(content: str, slug: str) -> Tuple[str, str]:
         status = 'FAIL' if hard_issues else 'WARN'
         return status, '; '.join(issues[:3]) + (f' ... 共 {len(issues)} 项' if len(issues) > 3 else '')
 
-    extra = f' 已核验 {len(re.findall(r"-\\s+", companies_match.group(1)))} 家公司'
+    extra = f' 已核验 {len(re.findall(r"-\s+", companies_match.group(1)))} 家公司'
     return 'PASS', f'verified_at {at_match.group(1)}（{verified_age_days} 天前）+ {verified_marks} 处正文标记{extra}'
 
 

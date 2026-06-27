@@ -117,6 +117,46 @@ python3 scripts/filter-candidates.py
 输出 markdown 格式。
 ```
 
+#### 4.2.3 🆕 Step 3 行业情报扫描（发文前必跑，防漏标防御）
+
+**为什么这条**：2026/6/27 第 9 篇玻璃桥/CPO 写完 Top 7 后才发现 Step 3 industry-kol-scan.py 能扫出 6 家被漏标的真龙头（亨通/光迅/源杰/光库/剑桥/博创）。代价是 1 小时补丁 + 反共识 5 重构。**正确做法是发文前先跑，扫出的候选公司直接进 Top 7，不需要补丁**。
+
+**强制流程**（A2 候选公司生成前必跑）：
+
+```bash
+# 0. 首次运行：拉取 myMCP stock_basic 全 A 股名单作为白名单(避免"新型光学封装"等误匹配)
+python3 scripts/industry-kol-scan.py --setup-whitelist
+# → 输出 ~/.cache/a-stock-names.json(5530 家公司)
+
+# 1. 用 web_search 搜主题，收集 15+ 条结果
+#    （mavis mcp call matrix web_search ... 或原生 web_search 工具）
+
+# 2. 把结果喂给 industry-kol-scan.py
+python3 scripts/industry-kol-scan.py \
+  --topic "<主题>" \
+  --slug <slug> \
+  --input <web_search_results.json>
+# 默认读 ~/.cache/a-stock-names.json 白名单,可加 --no-whitelist 禁用
+# → 输出 drafts/raw/<slug>/00-kol-scan.md + 00-kol-scan.json
+
+# 3. 人工核对 20+ 候选公司，检查是否覆盖 5 个产业链核心环节：
+#    - 上游材料 / 设备
+#    - 中游制造（光芯片 / 光器件 / 光模块 / 玻璃基板）
+#    - 下游应用（数据中心 / AI 服务器 / 光通信）
+#    - 海外大客户链（微软/Meta/亚马逊/英伟达）
+#    - 跨界 / 蹭概念（对照组）
+```
+
+**漏标处理**：
+- 扫描出但没在候选公司表的 → 补搜 → 加进 5 分类 → 再写 Top 7
+- 扫描出但**确实是边缘公司**（市值/卡位/数据都不足） → 记录到 00-kol-scan.md 的"未列入"清单，写明原因
+
+**反共识 N 补丁 vs 重排 Top 7**（发文后才发现漏标的决策）：
+- **B 路径（反共识补丁，推荐）**：数据快照已锁，加"反共识 N:产业链完整性反思"节，列漏标的 N 家 + 三点反思。详见第 9 篇实战（commit d996ad7）。
+- **A 路径（重排 Top 7）**：仅发文前发现漏标时使用。需要重跑 myMCP + cninfo + 重写 Top 7 + 重发。
+
+**实战**：第 9 篇玻璃桥/CPO 漏标的 6 家：亨通光电（国内光纤双雄）/ 光迅科技（国内唯一 10G+ 光芯片）/ 源杰科技（国产光芯片龙头）/ 光库科技（CPO 光纤阵列）/ 剑桥科技（800G 微软/Meta/亚马逊）/ 博创科技（集成光电子）。
+
 ### 4.3 写作（第 3 步，2-3 h）—— **v2 标准（强制）**
 
 **这是 v1 → v2 升级的核心**。v1 文章被批"产业链分析太浅"，v2 必须做到：

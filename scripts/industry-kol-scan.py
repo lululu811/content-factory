@@ -47,16 +47,64 @@ def classify_source(title: str, snippet: str, source: str) -> tuple:
     return "专业垂直媒体", "🟢"
 
 
-def extract_companies(snippet: str, title: str) -> set:
-    """从标题/摘要中提取可能的公司名(粗略正则 - 需人工核实)"""
-    pattern = re.compile(r"([\u4e00-\u9fa5]{2,6}(?:公司|股份|集团|光电|科技|技术|电子|通信|激光|新材|半导体))")
+# 内置公司名简称/全称/改名映射(避免 2024-2026 改名后白名单匹配不上)
+# key=文中出现的名字,value=白名单里的官方名
+NAME_ALIASES = {
+    "博创科技": "长芯博创",     # 2024/12/17 更名
+    "海康威视": "海康威视",     # 全称
+    "中际旭创": "中际旭创",     # 简称
+}
+
+
+def normalize_company_name(name: str) -> str:
+    """公司名归一化(简称/全称/改名映射)"""
+    return NAME_ALIASES.get(name, name)
+
+
+def extract_companies(snippet: str, title: str, whitelist: set = None) -> set:
+    """从标题/摘要中提取可能的公司名(粗略正则 - 需人工核实)
+
+    如果提供 whitelist(A 股全名单 set),只保留白名单内的公司名,
+    避免误匹配"一群热爱光通信"等描述性短语。
+    """
+    # 匹配 2-6 字中文 + 常见公司名后缀(覆盖 X公司/X股份/X科/X学/X材/X料/X创/X智/X能/X达/X通/X技/X子 等)
+    pattern = re.compile(r"([\u4e00-\u9fa5]{2,6}(?:公司|股份|集团|光电|科技|技术|电子|通信|激光|新材|半导体|高科|光学|材料|科创|智能|能源|智造|精机|精工|装备|创|智|能|达|通|技|子|网|芯|集成|德|新|特|微|信|动|力|生|源|合|成|品|业))")
     text = f"{title} {snippet}"
     companies = set()
     for m in pattern.finditer(text):
         c = m.group(1)
         if 3 <= len(c) <= 8:
-            companies.add(c)
+            normalized = normalize_company_name(c)
+            if whitelist is None or c in whitelist or normalized in whitelist:
+                companies.add(normalized if normalized in (whitelist or set()) else c)
     return companies
+
+
+DEFAULT_WHITELIST_CACHE = Path.home() / ".cache" / "a-stock-names.json"
+
+
+def load_whitelist(path: Path = None) -> set:
+    """加载 A 股公司名白名单(用于过滤 industry-kol-scan 误匹配)
+
+    首次运行:
+      mavis mcp call myMCP stock_basic '{}' > ~/.cache/a-stock-names.json
+    或
+      python3 scripts/industry-kol-scan.py --setup-whitelist
+    """
+    p = path or DEFAULT_WHITELIST_CACHE
+    if not p.exists():
+        return set()
+    try:
+        with open(p, encoding="utf-8") as f:
+            data = json.load(f)
+        # 支持两种格式:[{name: ..., ts_code: ...}] 或直接 ["公司A", ...]
+        if isinstance(data, list) and data and isinstance(data[0], dict):
+            return {item.get("name") or item.get("ts_code") for item in data if item.get("name") or item.get("ts_code")}
+        if isinstance(data, list):
+            return set(data)
+        return set()
+    except (json.JSONDecodeError, KeyError, TypeError):
+        return set()
 
 
 def generate_keywords(topic: str) -> list:
@@ -72,7 +120,7 @@ def generate_keywords(topic: str) -> list:
     ]
 
 
-def process_results(results: list, topic: str, slug: str, output_dir: str) -> dict:
+def process_results(results: list, topic: str, slug: str, output_dir: str, whitelist: set = None) -> dict:
     """处理 web_search 结果,生成 markdown + json 报告"""
     sources = {}
 
@@ -94,7 +142,7 @@ def process_results(results: list, topic: str, slug: str, output_dir: str) -> di
     # 提取公司
     all_companies = set()
     for s in sources.values():
-        all_companies |= extract_companies(s["snippet"], s["title"])
+        all_companies |= extract_companies(s["snippet"], s["title"], whitelist)
 
     # 分类
     by_category = {}
@@ -181,18 +229,62 @@ def process_results(results: list, topic: str, slug: str, output_dir: str) -> di
 def main():
     import argparse
     parser = argparse.ArgumentParser(description="content-factory Step 3 · 行业情报扫描工具")
-    parser.add_argument("--topic", required=True, help="行业主题")
-    parser.add_argument("--slug", required=True, help="文章 slug")
+    parser.add_argument("--topic", help="行业主题(setup-whitelist 模式不需要)")
+    parser.add_argument("--slug", help="文章 slug(setup-whitelist 模式不需要)")
     parser.add_argument("--output-dir", default="/Users/chenlei/content-factory/drafts/raw")
     parser.add_argument("--input", help="web_search 结果 JSON 文件路径(stdin 或 --input)")
+    parser.add_argument("--whitelist", help=f"A 股公司名白名单文件路径(JSON list,默认 ~/.cache/a-stock-names.json)")
+    parser.add_argument("--setup-whitelist", action="store_true", help="拉取 myMCP stock_basic 全 A 股名单生成白名单")
+    parser.add_argument("--no-whitelist", action="store_true", help="禁用白名单过滤(回退到原始正则)")
     args = parser.parse_args()
+
+    # setup-whitelist 模式:拉取 myMCP stock_basic 生成 cache 文件
+    if args.setup_whitelist:
+        import subprocess
+        DEFAULT_WHITELIST_CACHE.parent.mkdir(parents=True, exist_ok=True)
+        print(f"📡 拉取 myMCP stock_basic...")
+        try:
+            result = subprocess.run(
+                ["mavis", "mcp", "call", "myMCP", "stock_basic", "{}"],
+                capture_output=True, text=True, timeout=60
+            )
+            if result.returncode == 0:
+                raw = json.loads(result.stdout)
+                items = raw if isinstance(raw, list) else raw.get("data", raw.get("items", []))
+                names = sorted({item.get("name", "") for item in items if item.get("name")})
+                with open(DEFAULT_WHITELIST_CACHE, "w", encoding="utf-8") as f:
+                    json.dump(names, f, ensure_ascii=False, indent=2)
+                print(f"✅ 白名单已生成:{len(names)} 家公司 → {DEFAULT_WHITELIST_CACHE}")
+                return
+            else:
+                print(f"❌ myMCP 调用失败:{result.stderr}")
+                sys.exit(1)
+        except Exception as e:
+            print(f"❌ 拉取失败:{e}")
+            print("   可以手动执行:")
+            print("   mavis mcp call myMCP stock_basic '{}' > ~/.cache/a-stock-names.json")
+            sys.exit(1)
 
     if not args.input:
         print("❌ 本脚本需要 --input 参数(JSON 文件,包含 web_search 结果数组)")
         print("   用法:")
         print("   1. 在 agent 中调 web_search 工具,保存结果到 JSON")
         print("   2. python3 scripts/industry-kol-scan.py --input results.json --topic 光通信 --slug glass-bridge-cpo")
+        print()
+        print("   可选:首次运行拉取白名单(过滤误匹配):")
+        print("   python3 scripts/industry-kol-scan.py --setup-whitelist")
         sys.exit(1)
+
+    # 加载白名单
+    whitelist = None
+    if not args.no_whitelist:
+        wl_path = Path(args.whitelist) if args.whitelist else DEFAULT_WHITELIST_CACHE
+        whitelist = load_whitelist(wl_path)
+        if whitelist:
+            print(f"✅ 白名单:{len(whitelist)} 家公司(过滤误匹配)")
+        else:
+            print(f"⚠️  白名单未生成,使用原始正则(可能误匹配)")
+            print(f"   建议运行:python3 scripts/industry-kol-scan.py --setup-whitelist")
 
     with open(args.input, encoding="utf-8") as f:
         results = json.load(f)
@@ -200,10 +292,10 @@ def main():
         results = results["results"]
 
     print(f"📥 读取 {len(results)} 条搜索结果")
-    summary = process_results(results, args.topic, args.slug, args.output_dir)
+    summary = process_results(results, args.topic, args.slug, args.output_dir, whitelist=whitelist)
     print(f"✅ 处理完成")
     print(f"   权威源:{summary['total_sources']} 个")
-    print(f"   候选公司:{len(summary['mentioned_companies'])} 个")
+    print(f"   候选公司:{len(summary['mentioned_companies'])} 个(白名单过滤后)")
     print(f"   Markdown:{summary['markdown']}")
     print(f"   JSON:{summary['json']}")
 
