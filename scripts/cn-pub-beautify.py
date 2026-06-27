@@ -134,6 +134,111 @@ def rule_10_chinese_english_spacing(text: str) -> tuple:
     return '\n'.join(new_lines), changes
 
 
+def parse_tldr_from_frontmatter(frontmatter: str) -> dict:
+    """从 frontmatter 解析 tldr 字段
+
+    期望格式:
+    ```yaml
+    tldr:
+      one_liner: "..."
+      key_data:
+        - "..."
+        - "..."
+    ```
+    """
+    result = {'one_liner': None, 'key_data': []}
+    if not frontmatter:
+        return result
+
+    # 找 tldr: 块(到下一个顶级 key 或 --- 结束)
+    m = re.search(r'^tldr:\s*\n((?:[ \t]+.+\n)+)', frontmatter, re.MULTILINE)
+    if not m:
+        return result
+
+    block = m.group(1)
+    # one_liner
+    m_one = re.search(r'one_liner:\s*["\']?(.+?)["\']?\s*\n', block)
+    if m_one:
+        result['one_liner'] = m_one.group(1).strip().strip('"').strip("'")
+    # key_data (列表)
+    m_keys = re.search(r'key_data:\s*\n((?:[ \t]+-\s+.+\n)+)', block)
+    if m_keys:
+        for line in m_keys.group(1).split('\n'):
+            mm = re.match(r'[ \t]+-\s+["\']?(.+?)["\']?\s*$', line)
+            if mm:
+                result['key_data'].append(mm.group(1).strip())
+    return result
+
+
+def render_tldr_card(tldr: dict) -> str:
+    """把 tldr dict 渲染成 📌 公众号卡片 markdown"""
+    if not tldr.get('one_liner') and not tldr.get('key_data'):
+        return ''
+
+    lines = ['> 📌 **TL;DR 一句话版**:']
+    if tldr.get('one_liner'):
+        lines.append(f'> {tldr["one_liner"]}')
+    if tldr.get('key_data'):
+        lines.append('>')
+        lines.append('> 🔢 **关键数据**:')
+        for k in tldr['key_data']:
+            lines.append(f'> - {k}')
+    return '\n'.join(lines)
+
+
+def extract_summary_from_body(body: str) -> str:
+    """fallback:从正文开头的 > **摘要**: 段提取"""
+    m = re.search(r'^>\s*\*\*摘要\*\*[:：]\s*(.+?)(?=\n\n|\n#|\Z)', body, re.DOTALL | re.MULTILINE)
+    if m:
+        return m.group(1).strip().replace('\n', ' ')
+    return ''
+
+
+def rule_1_tldr_card(frontmatter: str, body: str) -> tuple:
+    """规则 1:开头加 📌 TL;DR 摘要卡片
+
+    优先级:
+    1. frontmatter 有 tldr 字段 → 用其生成完整卡片(一句话 + 关键数据)
+    2. 正文有 > **摘要**: 段 → 简化版(只有一句话)
+    3. 都没有 → 返回 (body, 0) + 警告(让 beautify 主函数输出)
+    """
+    tldr = parse_tldr_from_frontmatter(frontmatter)
+    if tldr.get('one_liner') or tldr.get('key_data'):
+        # 完整版
+        card = render_tldr_card(tldr)
+    else:
+        # fallback 从正文摘要提取
+        one_liner = extract_summary_from_body(body)
+        if one_liner:
+            # 简化:只有一句话
+            card = f'> 📌 **TL;DR 一句话版**:\n> {one_liner[:280]}{"..." if len(one_liner) > 280 else ""}'
+        else:
+            return body, 0  # 没有摘要,让主函数输出警告
+
+    # 找到 H1 标题位置,在 H1 之后插入
+    # 模式:# xxx\n\n(下一段是封面或首段)
+    lines = body.split('\n')
+    insert_idx = None
+    for i, line in enumerate(lines):
+        if line.startswith('# ') and not line.startswith('## '):
+            insert_idx = i + 1
+            break
+
+    if insert_idx is None:
+        return body, 0
+
+    # 跳过封面图片(![...](images/...))
+    while insert_idx < len(lines) and (
+        lines[insert_idx].strip().startswith('![]') or
+        lines[insert_idx].strip() == ''
+    ):
+        insert_idx += 1
+
+    # 在封面/标题之后插入卡片
+    new_lines = lines[:insert_idx] + ['', card, ''] + lines[insert_idx:]
+    return '\n'.join(new_lines), 1
+
+
 def warn_missing_patterns(text: str) -> list:
     """检测缺失的样式(警告,不自动加)"""
     warnings = []
@@ -203,6 +308,9 @@ def beautify(input_path: str, output_path: str = None) -> dict:
 
     # 应用规则
     summary = {}
+    # 规则 1:TL;DR 摘要卡片(优先 frontmatter tldr,fallback 正文摘要段)
+    body, n = rule_1_tldr_card(frontmatter, body)
+    summary['规则 1 TL;DR 摘要卡片'] = n
     body, n = rule_2_number_highlight(body)
     summary['规则 2 关键数字高亮'] = n
     body, n = rule_5_risk_emoji(body)
