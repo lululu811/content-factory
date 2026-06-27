@@ -24,68 +24,110 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
 # ============================================================
-# Chart 1: 6 大环节产业链地图
+# Chart 1: 9 环节产业链地图(含 7 家漏标 + 4 家非 A 股)
 # ============================================================
 def chart_01_supply_chain():
-    fig, ax = plt.subplots(figsize=(14, 8))
-    ax.set_xlim(0, 14)
-    ax.set_ylim(0, 8)
+    fig, ax = plt.subplots(figsize=(16, 9))
+    ax.set_xlim(0, 16)
+    ax.set_ylim(0, 9)
     ax.axis('off')
 
     # 标题
-    ax.text(7, 7.5, '玻璃基板 6 大产业链环节 · 国产替代进度',
+    ax.text(8, 8.5, '玻璃基板 9 产业链环节 · 国产替代进度(2026/6/27 快照)',
             ha='center', va='center', fontsize=18, fontweight='bold')
-    ax.text(7, 7.0, '从康宁 90% 垄断到国内 6 环节追赶', ha='center', va='center', fontsize=12, color='gray')
+    ax.text(8, 8.0, '从康宁 90% 垄断到国内 8 环节追赶 + 7 家漏标 + 4 家非 A 股', ha='center', va='center', fontsize=11, color='gray')
 
-    # 6 个环节框
+    # 8 个主环节框(横向)
     stages = [
         ("1. 玻璃原片", "戈碧迦 / 凯盛科技", "🟡 UTG 延伸\n未量产", "康宁/肖特/旭硝子\n垄断 90%"),
-        ("2. TGV 设备\n(激光)", "帝尔激光 / 德龙激光\n海目星", "🟢 面板级\n已出货", "深径比 ≥100:1\n最小孔径 ≤5μm"),
-        ("3. PVD/电镀\n设备", "东威科技", "🟢 PVD/TGV/RDL\n均已交付客户", "后段卡脖子"),
-        ("4. TGV 加工\n/载板", "沃格光电 / 京东方A\n兴森科技", "🔴 沃格量产未达\n🟡 京东方试验期", "规划 100 万平米\n9.93 亿试验线"),
-        ("5. 药水", "天承科技", "🟢 已批量出货\n数十家打样", "SkyFab THF 系列"),
-        ("6. 封测", "长电科技 / 通富微电", "🟢 TGV+PSPI\n工艺验证通过", "国产封测龙头"),
+        ("2. PVD 设备\n(种子层)", "汇成真空\n(🟢 全国唯一)", "🟢 HiPIMS\n深径比 15:1", "反共识 4\n占产线 50%+"),
+        ("3. TGV 激光\n设备", "帝尔/德龙/海目星", "🟢 面板级\n已出货", "深径比 ≥100:1\n孔径 ≤5μm"),
+        ("4. 电镀\n设备", "东威科技", "🟢 已交付客户\n深径比 10:1", "后段卡脖子"),
+        ("5. 药水", "天承科技", "🟢 已批量出货\n数十家打样", "SkyFab THF"),
+        ("6. TGV 加工\n/载板", "沃格/京东方A\n兴森", "🔴 沃格量产未达\n🟡 京东方试验期", "9.93 亿试验线"),
+        ("7. 封测", "长电/通富微电", "🟢 TGV+PSPI\n工艺验证通过", "国产封测龙头"),
     ]
 
     for i, (title, companies, status, note) in enumerate(stages):
-        x = 0.5 + i * 2.25
+        x = 0.3 + i * 2.2
         # 主框
-        rect = FancyBboxPatch((x, 2.0), 2.0, 4.0,
+        rect = FancyBboxPatch((x, 4.5), 1.9, 3.0,
                               boxstyle="round,pad=0.05",
                               facecolor='#E3F2FD', edgecolor='#1976D2', linewidth=2)
         ax.add_patch(rect)
         # 标题
-        ax.text(x + 1.0, 5.5, title, ha='center', va='center',
-                fontsize=11, fontweight='bold')
+        ax.text(x + 0.95, 7.0, title, ha='center', va='center',
+                fontsize=10, fontweight='bold')
         # 公司
-        ax.text(x + 1.0, 4.7, companies, ha='center', va='center',
-                fontsize=8, color='#333')
+        ax.text(x + 0.95, 6.3, companies, ha='center', va='center',
+                fontsize=7.5, color='#333')
         # 状态
-        ax.text(x + 1.0, 3.7, status, ha='center', va='center',
-                fontsize=9, color='#D32F2F' if '🔴' in status else '#F57C00' if '🟡' in status else '#388E3C')
+        ax.text(x + 0.95, 5.5, status, ha='center', va='center',
+                fontsize=8, color='#D32F2F' if '🔴' in status else '#F57C00' if '🟡' in status else '#388E3C')
         # 备注
-        ax.text(x + 1.0, 2.5, note, ha='center', va='center',
-                fontsize=7.5, color='#555', wrap=True)
+        ax.text(x + 0.95, 4.85, note, ha='center', va='center',
+                fontsize=7, color='#555', wrap=True)
 
     # 箭头连接
-    for i in range(5):
-        x_start = 0.5 + i * 2.25 + 2.0
-        x_end = 0.5 + (i + 1) * 2.25
-        arrow = FancyArrowPatch((x_start, 4.0), (x_end, 4.0),
+    for i in range(6):
+        x_start = 0.3 + i * 2.2 + 1.9
+        x_end = 0.3 + (i + 1) * 2.2
+        arrow = FancyArrowPatch((x_start, 6.0), (x_end, 6.0),
                                 arrowstyle='->', mutation_scale=20,
                                 color='#666', linewidth=2)
         ax.add_patch(arrow)
 
-    # 底部反共识
-    ax.text(7, 1.0, '🟢 反共识 1: 玻璃 vs ABF 不是替代,是搭配共存',
+    # 漏标环节(横向 7 家)
+    ax.text(8, 3.6, '📋 漏标 7 家(反共识 5 补 · 数据快照 2026/6/26)',
             ha='center', va='center', fontsize=12, fontweight='bold', color='#1976D2')
-    ax.text(7, 0.5, '🟢 反共识 2: 设备先于材料放量(早周期优选设备)',
-            ha='center', va='center', fontsize=11, color='#388E3C')
+
+    # 7 家漏标
+    missing = [
+        ("莱宝高科", "ITO 玻璃", "+10.0%"),
+        ("长信科技", "玻璃精加工", "+13.4%"),
+        ("沃尔德", "超硬刀具", "+10.4%"),
+        ("蓝特光学", "光学元件", "+1.1%"),
+        ("晶方科技", "WLP 封测", "+4.6%"),
+        ("安彩高科", "浮法玻璃", "+0.2%"),
+        ("华映科技", "显示面板", "-0.9%"),
+    ]
+    for i, (name, role, pct) in enumerate(missing):
+        x = 0.3 + i * 2.2
+        rect = FancyBboxPatch((x, 2.0), 1.9, 1.2,
+                              boxstyle="round,pad=0.05",
+                              facecolor='#FFF3E0', edgecolor='#F57C00', linewidth=1.5)
+        ax.add_patch(rect)
+        ax.text(x + 0.95, 2.8, name, ha='center', va='center',
+                fontsize=9, fontweight='bold')
+        ax.text(x + 0.95, 2.4, role, ha='center', va='center',
+                fontsize=7.5, color='#666')
+        ax.text(x + 0.95, 2.1, pct, ha='center', va='center',
+                fontsize=8, color='#388E3C' if not pct.startswith('-') else '#D32F2F')
+
+    # 非 A 股 4 家(底部)
+    ax.text(8, 1.4, '🌏 非 A 股 4 家 TGV 真正龙头(反共识 6 补)',
+            ha='center', va='center', fontsize=11, fontweight='bold', color='#1976D2')
+    non_a = [
+        ("厦门云天半导体", "TGV 真正龙头", "4μm 出货 2 万片"),
+        ("三叠纪", "TGV 3.0 中试", "松山湖板级封装线"),
+        ("佛智芯", "深径比最深", "150:1"),
+        ("安捷利美维", "TGV 载板", "8+2+8 工艺"),
+    ]
+    for i, (name, role, metric) in enumerate(non_a):
+        x = 1.0 + i * 3.6
+        rect = FancyBboxPatch((x, 0.2), 3.0, 0.9,
+                              boxstyle="round,pad=0.05",
+                              facecolor='#E8F5E9', edgecolor='#388E3C', linewidth=1.5)
+        ax.add_patch(rect)
+        ax.text(x + 1.5, 0.75, name, ha='center', va='center',
+                fontsize=9, fontweight='bold')
+        ax.text(x + 1.5, 0.45, f'{role} · {metric}', ha='center', va='center',
+                fontsize=7.5, color='#666')
 
     plt.tight_layout()
     plt.savefig(f"{OUTPUT_DIR}/chart_01_supply_chain.png", dpi=150, bbox_inches='tight')
     plt.close()
-    print(f"✅ chart_01 saved")
+    print(f"✅ chart_01 saved (9 环节版)")
 
 
 # ============================================================
