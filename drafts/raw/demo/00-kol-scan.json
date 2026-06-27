@@ -1,0 +1,193 @@
+{
+  "topic": "玻璃基板+光通信",
+  "slug": "demo",
+  "scanned_at": "2026-06-27T13:26:36.764056",
+  "total_sources": 21,
+  "mentioned_companies": [
+    "一群热爱光通信",
+    "东威科技",
+    "博杰股份",
+    "在线是中国光通信",
+    "基板行业正从技术",
+    "天承科技",
+    "帝尔激光",
+    "彩虹股份",
+    "态路通信",
+    "成立的专业光通信",
+    "气互连的关键技术",
+    "沃格光电",
+    "注于国内外光通信",
+    "点燃光通信",
+    "邮人创办的光通信"
+  ],
+  "sources": [
+    {
+      "title": "玻璃基板深度报告:玻璃基板性能优越",
+      "snippet": "TGV技术是实现玻璃基板垂直电气互连的关键技术。PVD中的挑战在于如何提高金属层与玻璃表面的粘附性",
+      "source": "新浪财经",
+      "link": "https://新浪财经/",
+      "category": "券商研报",
+      "quality": "🟡"
+    },
+    {
+      "title": "半导体行业观察 玻璃基板产业先进制造",
+      "snippet": "半导体行业观察 玻璃基板产业先进制造的工程智能之路",
+      "source": "半导体行业观察",
+      "link": "https://半导体行业观察/",
+      "category": "专业垂直媒体",
+      "quality": "🟢"
+    },
+    {
+      "title": "CINNO Research 玻璃基板 2026 商业化元年",
+      "snippet": "周华首席分析师 玻璃基板商业化元年。汇成真空,美迪凯,帝尔激光,东威科技",
+      "source": "CINNO Research",
+      "link": "https://CINNO/",
+      "category": "券商研报",
+      "quality": "🟡"
+    },
+    {
+      "title": "芯智讯 半导体设备市场屡创新高",
+      "snippet": "芯智讯 头条领航创作者。半导体设备市场屡创新高 ASML揭秘",
+      "source": "芯智讯",
+      "link": "https://芯智讯/",
+      "category": "专业垂直媒体",
+      "quality": "🟢"
+    },
+    {
+      "title": "华尔街见闻 玻璃基板 2026 一匹黑马",
+      "snippet": "Wind玻璃基板指数单周累计涨幅超10%。博杰股份,帝尔激光,天承科技,美迪凯,彩虹股份",
+      "source": "华尔街见闻",
+      "link": "https://华尔街见闻/",
+      "category": "通用财经媒体",
+      "quality": "🟡"
+    },
+    {
+      "title": "中泰证券 玻璃基板深度报告",
+      "snippet": "2026年有望成商业化元年,2028年前后进入快速渗透期。沃格光电,京东方A",
+      "source": "证券时报",
+      "link": "https://证券时报/",
+      "category": "券商研报",
+      "quality": "🟡"
+    },
+    {
+      "title": "东方证券 玻璃基板深度报告",
+      "snippet": "玻璃基板在先进封装领域的应用有望逐步成熟。京东方A,沃格光电",
+      "source": "东方证券",
+      "link": "https://东方证券/",
+      "category": "券商研报",
+      "quality": "🟡"
+    },
+    {
+      "title": "讯石光通讯网 LightCounting 预测更新",
+      "snippet": "LightCounting 2024年9月高速以太网光模块报告。1.6T,LPO,CPO",
+      "source": "讯石光通讯网",
+      "link": "https://讯石/",
+      "category": "国际权威数据",
+      "quality": "🟢"
+    },
+    {
+      "title": "LightCounting 光模块预测",
+      "snippet": "LC更新以太网光模块 LPO CPO 的预测。2024增长57%,2025增长62%,2026增长20%",
+      "source": "LightCounting",
+      "link": "https://LightCounting/",
+      "category": "国际权威数据",
+      "quality": "🟢"
+    },
+    {
+      "title": "中研普华 玻璃基板行业现状",
+      "snippet": "中国作为全球最大的显示面板生产基地,玻璃基板行业正从技术跟随向自主可控加速迈进",
+      "source": "中研普华",
+      "link": "https://中研网/",
+      "category": "专业垂直媒体",
+      "quality": "🟢"
+    },
+    {
+      "title": "有哪些tmt(通信)领域的公众号推荐?",
+      "snippet": "光纤在线,弱电课堂,通信百科,通信人家园,光通信女人,态路通信",
+      "source": "知乎",
+      "link": "https://知乎/",
+      "category": "专业垂直媒体",
+      "quality": "🟢"
+    },
+    {
+      "title": "媒体看光博 飞象网:低潮中的希望",
+      "snippet": "飞象网原创文章(作者 魏德龄)。1.6T光模块,800G",
+      "source": "搜狐",
+      "link": "https://搜狐/",
+      "category": "专业垂直媒体",
+      "quality": "🟢"
+    },
+    {
+      "title": "OFweek光通讯网-微信公众号",
+      "snippet": "OFweek光通讯网是中国光通讯行业门户,专注于国内外光通信技术和行业热点分析",
+      "source": "OFweek光通讯网",
+      "link": "",
+      "category": "专业垂直媒体",
+      "quality": "🟢"
+    },
+    {
+      "title": "一群热爱光通信的北邮人创建的公众号:Optics Communications",
+      "snippet": "北邮人创办的光通信相关内容的公众号,涵盖科研、论文、技术、热点",
+      "source": "知乎",
+      "link": "https://知乎/",
+      "category": "专业垂直媒体",
+      "quality": "🟢"
+    },
+    {
+      "title": "OFweek光通讯网 - 光通信行业门户",
+      "snippet": "1.52万亿中际旭创市值反超茅台。豪掷81亿光芯片扩产",
+      "source": "OFweek光通讯网",
+      "link": "https://OFweek/",
+      "category": "专业垂直媒体",
+      "quality": "🟢"
+    },
+    {
+      "title": "光通讯新闻 - OFweek光通讯网",
+      "snippet": "评论 西班牙首相说华为将助力西班牙5G发展",
+      "source": "OFweek光通讯网",
+      "link": "https://OFweek/",
+      "category": "通用财经媒体",
+      "quality": "🟡"
+    },
+    {
+      "title": "DeepSeek等低成本AI点燃光通信需求",
+      "snippet": "光收发模块2025年出货量预估年增56.5%。TrendForce集邦咨询统计",
+      "source": "搜狐",
+      "link": "https://搜狐/",
+      "category": "国际权威数据",
+      "quality": "🟢"
+    },
+    {
+      "title": "光通信公众号好文推荐",
+      "snippet": "https:// mp.weixin.qq.com/s/",
+      "source": "知乎",
+      "link": "https://zhuanlan.zhihu.com/",
+      "category": "专业垂直媒体",
+      "quality": "🟢"
+    },
+    {
+      "title": "光通信综合 - 光纤在线",
+      "snippet": "光纤在线是中国最早成立的专业光通信行业垂直门户网站",
+      "source": "光纤在线",
+      "link": "https://c-fol.net/",
+      "category": "专业垂直媒体",
+      "quality": "🟢"
+    },
+    {
+      "title": "光通信运营 - 光纤在线",
+      "snippet": "光纤在线是中国光通信领域历史最久、规模最大、覆盖面最广的网络媒体",
+      "source": "光纤在线",
+      "link": "https://c-fol.net/",
+      "category": "专业垂直媒体",
+      "quality": "🟢"
+    },
+    {
+      "title": "光通信产业链个股一览",
+      "snippet": "光通信产业链个股一览",
+      "source": "东方财富博客",
+      "link": "http://blog.eastmoney.com/",
+      "category": "通用财经媒体",
+      "quality": "🟡"
+    }
+  ]
+}
