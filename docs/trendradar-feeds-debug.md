@@ -1,8 +1,9 @@
-# TrendRadar 7 个未拉通 feed 排查报告(2026/6/28)
+# TrendRadar 未拉通 feed 排查报告(2026/6/28)
 
 > **问题**:TrendRadar `config.yaml` 注册 49 个 feed,但 `rss_feeds` 表只有 44 个,缺 7 个未抓到数据。
 > **排查人**:Mavis
-> **解决状态**:已加入 `scripts/paused-channels.txt` 暂停名单,等用户手动修 RSSHub/wewe-rss 通路。
+> **解决状态**:**6 个微信公众号全部恢复**(21:30 TrendRadar --now 跑通),剩余 1 个博客 ruanyifeng(RSSHub 路由问题)。
+> **结果**:rss_feeds 44 → 50(+6),rss_items 1139 → 1302(+163 条)。
 
 ---
 

@@ -16,10 +16,4 @@ Bg2 Pod - YouTube
 #   1. wechat-* 6 个: 验证 wechat.zknowledge.site 是否收录这些公众号 ID
 #   2. ruanyifeng: 验证 RSSHub ruanyifeng 路由(/ruanyifeng/weekly)
 # 解除暂停:删除对应行 + 修复 RSSHub + 重新跑 TrendRadar
-wechat-bdtcygc:半导体行业观察
-wechat-htzqcl:华泰证券策略研究
-wechat-kdcc:看懂产业链
-wechat-tfyanjiu:天风研究
-wechat-yckjpl:远川科技评论
-wechat-zgzqb:中国证券报
 ruanyifeng:阮一峰的网络日志

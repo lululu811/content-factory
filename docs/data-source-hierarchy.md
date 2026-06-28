@@ -71,7 +71,7 @@
   - **半导体专用筛选**:`custom/ai/semiconductor.txt` 针对半导体/AI算力/光通信/先进封装
 - **使用门槛**:TrendRadar 服务需要跑(本地 + docker + RSSHub + wewe-rss)
 - **替代**:无(TrendRadar 已完全覆盖 bibi/RSS + 微信公众号 + B 站 UP 主)
-- **6 个未拉通的微信公众号**(默认暂停):华泰证券策略研究 / 天风研究 / 半导体行业观察 / 远川科技评论 / 看懂产业链 / 中国证券报(等用户手动验证 RSSHub/wewe-rss 通路)
+- **6 个未拉通的微信公众号**(2026/6/28 21:30 TrendRadar --now **全部恢复**):华泰证券策略研究 / 天风研究 / 半导体行业观察 / 远川科技评论 / 看懂产业链 / 中国证券报(各 10 条/日)。剩余 1 个博客 ruanyifeng(RSSHub 路径问题)
 - **示例**:见 `docs/ai-interests-mapping.md` 的 Python 脚本
 - **重要性**:**content-factory 的"上游选题源",比 bibi/RSS 强 10 倍**,2026/6/28 刷新后实际覆盖 44 feed
 

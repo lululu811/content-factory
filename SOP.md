@@ -162,15 +162,17 @@ EOF
 
 > **关键洞察**：44 个 feed = **content-factory 的"选题金矿"**。每天 1139 条，AI 智能筛选后剩 50-80 条高质量候选。**之前 content-factory 自建的 bibi/RSS 系统可以退休**，全部用 TrendRadar。
 
-**6 个微信公众号在 config.yaml 里注册但今日未拉到数据**（需排查 RSSHub 通路）：
-- `wechat-htzqcl` 华泰证券策略研究
-- `wechat-tfyanjiu` 天风研究
-- `wechat-bdtcygc` 半导体行业观察
-- `wechat-yckjpl` 远川科技评论
-- `wechat-kdcc` 看懂产业链
-- `wechat-zgzqb` 中国证券报
+**6 个微信公众号 → 5 个已恢复（2026/6/28 21:30 TrendRadar --now 跑通）**：
+- ✅ `wechat-htzqcl` 华泰证券策略研究（10 条）
+- ✅ `wechat-tfyanjiu` 天风研究（10 条）
+- ✅ `wechat-bdtcygc` 半导体行业观察（10 条）
+- ✅ `wechat-yckjpl` 远川科技评论（10 条）
+- ✅ `wechat-kdcc` 看懂产业链（10 条）
+- ✅ `wechat-zgzqb` 中国证券报（10 条）
 
-→ 默认加入 `scripts/paused-channels.txt`，等用户手动验证 RSSHub/wewe-rss 通路后再启用。
+→ 实际 6 个微信公众号全部恢复，rss_feeds 表从 44 → 50（+6），rss_items 从 1139 → 1302（+163 条）。
+
+**剩余 1 个未拉通的 feed**：`ruanyifeng` 阮一峰的网络日志（RSSHub 路由问题，非公众号）。默认加入 `scripts/paused-channels.txt`，等用户验证 RSSHub `/ruanyifeng/weekly` 路由。
 
 **扩展兴趣的方法**：
 1. 改 `~/001_project/TrendRadar/config/ai_interests.txt` 加新方向
