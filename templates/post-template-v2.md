@@ -46,10 +46,34 @@ research_reports:
       path: ""                         # 相对路径
       used_for: ""
   skipped_reason: ""                   # 如果 found_concepts = 0,说明跳过原因
+
+# ============ ZsxqCrawler 原始导出(A17b 必读 · 硬约束 · 2026/6/28 新增)============
+# 详见 SOP.md 4.2.1「ZsxqCrawler 原始导出 Step 0 必跑」+ 4.3.7「zsxq_crawler 查证记录」
+# 知识库二次总结丢失精度 → ZsxqCrawler 原始导出是精度最高源。
+# 写新文章前必跑:
+#   1. rg -l "<关键词>" /Users/chenlei/002_tools/ZsxqCrawler/output/export_by_date/2026/
+#   2. rg -n "<关键词>" /path/to/<file>.md  # 定位章节
+#   3. 读章节前后 2-3 段,拿完整观点
+# 引用格式:[来源:ZsxqCrawler YYYY-MM-DD / 作者 / 第 X 节"章节标题" / 段落 N]
+zsxq_crawler:
+  queried_at: "YYYY-MM-DD"              # ZsxqCrawler 扫描时间(硬约束 ≤ 30 天,FAIL if 过期)
+  found_files: 0                        # 命中的 .md 文件数
+  cited_sections: 0                     # 引用章节数(硬约束 ≥ 1,FAIL)
+  cited_paragraphs: 0                   # 引用段落数
+  citations:                            # 引用列表(硬约束 ≥ 1 项,FAIL if 空)
+    - file: "06-01_AI算力链更新.md"     # 文件名(MM-DD_<主题>.md)
+      author: "乐晴"                    # 作者(知识星球原 ID)
+      date: "2026-06-01"                # 原始发布日期
+      section: "1) 黄仁勋 GTC Taipei 2026 演讲要点总结"  # 章节标题
+      paragraph: "Vera Rubin 已投入全面量产..."  # 引用段落摘要
+      quote: "台湾从一开始就和我们在一起"  # 原文 quote(可选)
+  skipped_reason: ""                    # 如果 found_files = 0,说明跳过原因(允许 0 命中)
 ---
 ```
 
 > ⚠️ **A16 自动检查**：发布前跑 `compliance-check.py --strict`，如果正文里有 `**公司** + 股票代码/营收/上市状态` 但 frontmatter `data_verified.verified_at` 是空或者 verified_companies 列表为空 → **A16 FAIL，发布被拒绝**。
+>
+> ⚠️ **A17b 自动检查**(2026/6/28 新增):如果 frontmatter 缺 `zsxq_crawler` 段，或 `cited_sections < 1` 或 `citations` 为空（且没填 `skipped_reason`） → **A17b FAIL，发布被拒绝**。research_reports 已软化为 WARN(A17)，可空可不空。
 
 ---
 
