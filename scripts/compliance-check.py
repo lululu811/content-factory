@@ -436,17 +436,15 @@ def check_16_data_verified(content: str, slug: str) -> Tuple[str, str]:
 
 
 def check_17_research_reports(content: str, slug: str) -> Tuple[str, str]:
-    """A17. research-reports /query 必跑（frontmatter research_reports 字段 + 时间新鲜度）
+    """A17. research-reports /query(frontmatter research_reports 字段,2026/6/28 软化为软提示)
 
-    强约束（FAIL if 缺）：
-    - frontmatter research_reports.queried_at 必填，且距今 ≤ 30 天
-    - frontmatter research_reports.linked_concepts 至少 1 个条目（除非 skipped_reason 写明）
+    软约束(WARN if 缺,不再 FAIL):
+    - frontmatter research_reports.queried_at 必填(留作溯源,不再 ≤ 30 天硬约束)
+    - frontmatter research_reports.linked_concepts 至少 1 个条目(除非 skipped_reason 写明)
 
-    中约束（WARN if 缺）：
-    - 正文里有 Obsidian 双链 [[概念名]] 格式
-
-    背景：content-factory SOP 4.2.1 规定写新文章前必跑 research-reports /query。
-    research-reports 是 1053 概念 + 2181 source 的长期积累,不查 = 浪费。
+    背景:6/28 用户洞察——知识库二次总结丢失精度 → A17 软化,
+    research-reports /query 降级为概念索引(详见 SOP 4.3.6)。
+    ZsxqCrawler 原始导出成为新的硬约束(详见 A17b)。
     """
     fm_match = re.match(r'---\n(.*?)\n---', content, re.DOTALL)
     if not fm_match:
@@ -466,10 +464,87 @@ def check_17_research_reports(content: str, slug: str) -> Tuple[str, str]:
     rr_text = rr_match.group(1)
     issues = []
 
-    # 检查 queried_at
+    # 检查 queried_at(软提示,只校验格式,不再检查 ≤ 30 天)
     at_match = re.search(r'queried_at:\s*["\']?(\d{4}-\d{2}-\d{2})', rr_text)
     if not at_match:
-        issues.append('queried_at 缺失或非 ISO 日期')
+        issues.append('queried_at 缺失或非 ISO 日期(软提示)')
+        queried_age_days = None
+    else:
+        try:
+            queried_date = datetime.strptime(at_match.group(1), '%Y-%m-%d').date()
+            queried_age_days = (date.today() - queried_date).days
+        except ValueError:
+            issues.append(f'queried_at 解析失败: {at_match.group(1)}(软提示)')
+
+    # 检查 skipped_reason(允许 0 命中但要写明)
+    skipped_match = re.search(r'skipped_reason:\s*["\']?([^\n]+)', rr_text)
+    skipped_reason = skipped_match.group(1).strip() if skipped_match else ''
+
+    # 检查 linked_concepts(数所有 `- name:` 行)
+    found_concepts_count = len(re.findall(r'-\s+name:', rr_text))
+
+    # 软约束:linked_concepts 为空 + 没写 skipped_reason → WARN
+    if found_concepts_count == 0 and not skipped_reason:
+        issues.append(
+            'linked_concepts 为空且 skipped_reason 未填写(软提示,建议补一项)'
+        )
+
+    # 软约束:正文里 [[概念名]] 双链
+    obsidian_links = re.findall(r'\[\[[^\]\n]+\]\]', content)
+    if not obsidian_links:
+        issues.append(
+            '建议在正文里加 [[概念名]] 双链格式(research-reports Obsidian 链接)'
+        )
+
+    # A17 全部 WARN,不 FAIL(6/28 软化)
+    if issues:
+        return 'WARN', '; '.join(issues[:3]) + (f' ... 共 {len(issues)} 项' if len(issues) > 3 else '')
+
+    return 'PASS', (
+        f'queried_at {at_match.group(1)}（{queried_age_days} 天前）+ {found_concepts_count} 个概念链接'
+        f'+ {len(obsidian_links)} 处正文双链'
+    )
+
+
+
+
+def check_17b_zsxq_crawler(content: str, slug: str) -> Tuple[str, str]:
+    """A17b. ZsxqCrawler 原始导出必跑(frontmatter zsxq_crawler 字段,2026/6/28 新增硬约束)
+
+    强约束(FAIL if 缺):
+    - frontmatter zsxq_crawler.queried_at 必填,且距今 ≤ 30 天
+    - frontmatter zsxq_crawler.cited_sections ≥ 1(除非 skipped_reason 写明)
+    - frontmatter zsxq_crawler.citations ≥ 1 项(除非 skipped_reason 写明)
+
+    中约束(WARN if 缺):
+    - 正文里 [来源:ZsxqCrawler ...] 引用格式 ≥ 3 处
+
+    背景:6/28 用户洞察——知识库二次总结丢失精度 → ZsxqCrawler 原始导出
+    (2895 条话题,完整保留作者/日期/ID/点赞)成为精度最高源,升 P0。
+    每篇深度文必须基于至少 1 条原始观点,否则属于"凭印象写"(详见 SOP 4.2.1 + 4.3.7)。
+    """
+    fm_match = re.match(r'---\n(.*?)\n---', content, re.DOTALL)
+    if not fm_match:
+        return 'FAIL', '未检测到 frontmatter 块(v2/v3 模板必填)'
+
+    fm_text = fm_match.group(1)
+
+    # 提取 zsxq_crawler 段
+    zc_match = re.search(
+        r'zsxq_crawler:\n(.*?)(?=\n\S|\Z)',
+        fm_text,
+        re.DOTALL,
+    )
+    if not zc_match:
+        return 'FAIL', 'frontmatter 缺 zsxq_crawler 段(必须包含 queried_at + cited_sections + citations 或 skipped_reason)'
+
+    zc_text = zc_match.group(1)
+    issues = []
+
+    # 检查 queried_at(硬约束 ≤ 30 天)
+    at_match = re.search(r'queried_at:\s*["\']?(\d{4}-\d{2}-\d{2})', zc_text)
+    if not at_match:
+        issues.append('queried_at 缺失或非 ISO 日期(硬 FAIL)')
         queried_age_days = None
     else:
         try:
@@ -477,39 +552,47 @@ def check_17_research_reports(content: str, slug: str) -> Tuple[str, str]:
             queried_age_days = (date.today() - queried_date).days
             if queried_age_days > 30:
                 issues.append(
-                    f'queried_at 已过期 {queried_age_days} 天（需 ≤ 30 天，建议发布前 24 小时内重新查）'
+                    f'queried_at 已过期 {queried_age_days} 天(硬 FAIL,需 ≤ 30 天,建议发布前 24h 重新扫)'
                 )
         except ValueError:
-            issues.append(f'queried_at 解析失败: {at_match.group(1)}')
+            issues.append(f'queried_at 解析失败: {at_match.group(1)}(硬 FAIL)')
 
-    # 检查 skipped_reason
-    skipped_match = re.search(r'skipped_reason:\s*["\']?([^\n]+)', rr_text)
+    # 检查 skipped_reason(允许 0 命中但要写明)
+    skipped_match = re.search(r'skipped_reason:\s*["\']?([^\n]+)', zc_text)
     skipped_reason = skipped_match.group(1).strip() if skipped_match else ''
 
-    # 检查 linked_concepts（数所有 `- name:` 行，不要求连续）
-    found_concepts_count = len(re.findall(r'-\s+name:', rr_text))
-
-    # 强约束：要么有 linked_concepts，要么 skipped_reason 写明
-    if found_concepts_count == 0 and not skipped_reason:
+    # 硬约束:zsxq_crawler.cited_sections ≥ 1(除非 skipped_reason)
+    cs_match = re.search(r'cited_sections:\s*(\d+)', zc_text)
+    cited_sections = int(cs_match.group(1)) if cs_match else 0
+    if cited_sections < 1 and not skipped_reason:
         issues.append(
-            'linked_concepts 为空且 skipped_reason 未填写（必须至少填一项）'
+            f'cited_sections = {cited_sections}(硬 FAIL,需 ≥ 1,除非 skipped_reason 写明 0 命中原因)'
         )
 
-    # 中约束：正文里的 [[概念名]] 双链
-    obsidian_links = re.findall(r'\[\[[^\]\n]+\]\]', content)
-    if not obsidian_links:
+    # 硬约束:zsxq_crawler.citations ≥ 1 项
+    citations_count = len(re.findall(r'-\s+file:', zc_text))
+    if citations_count < 1 and not skipped_reason:
         issues.append(
-            '建议在正文里加 [[概念名]] 双链格式（research-reports Obsidian 链接）'
+            f'citations = {citations_count} 项(硬 FAIL,需 ≥ 1 项,除非 skipped_reason 写明)'
+        )
+
+    # 软约束:正文里 [来源:ZsxqCrawler ...] 引用格式
+    zsxq_citations_in_body = re.findall(r'\[来源:ZsxqCrawler[^\]]+\]', content)
+    if len(zsxq_citations_in_body) < 3:
+        issues.append(
+            f'正文里 [来源:ZsxqCrawler ...] 引用 = {len(zsxq_citations_in_body)} 处(软 WARN,建议 ≥ 3 处)'
         )
 
     if issues:
-        hard_issues = [i for i in issues if '已过期' in i or '缺失' in i or '解析失败' in i or '为空' in i]
+        # 区分硬/软:过期/缺失/为0/解析失败 → FAIL
+        hard_keywords = ['硬 FAIL', '缺失', '解析失败', '= 0', '已过期']
+        hard_issues = [i for i in issues if any(k in i for k in hard_keywords)]
         status = 'FAIL' if hard_issues else 'WARN'
         return status, '; '.join(issues[:3]) + (f' ... 共 {len(issues)} 项' if len(issues) > 3 else '')
 
     return 'PASS', (
-        f'queried_at {at_match.group(1)}（{queried_age_days} 天前）+ {found_concepts_count} 个概念链接'
-        f'+ {len(obsidian_links)} 处正文双链'
+        f'queried_at {at_match.group(1)}({queried_age_days} 天前) + cited_sections {cited_sections} + citations {citations_count} 项'
+        f' + 正文 {len(zsxq_citations_in_body)} 处引用'
     )
 
 
@@ -534,7 +617,8 @@ CHECKS = [
     ('B14', 'tracking 记录已写入', check_14_tracking),
     ('C15', '访谈引用块 + 中英对照(仅 interview: 启用)', check_15_quote_citations),
     ('A16', '数据时效校验（frontmatter data_verified + 时间新鲜度）', check_16_data_verified),
-    ('A17', 'research-reports /query 必跑(frontmatter research_reports + 时间新鲜度)', check_17_research_reports),
+    ('A17', 'research-reports /query 软提示(2026/6/28 软化)', check_17_research_reports),
+    ('A17b', 'ZsxqCrawler 原始导出必跑(frontmatter zsxq_crawler + cited_sections≥1 硬约束)', check_17b_zsxq_crawler),
 ]
 
 
