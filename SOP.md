@@ -71,6 +71,90 @@ python3 scripts/filter-candidates.py
 - 优先选**有卡点但市场讨论少**的方向
 - 配合 Obsidian 库里的 MOC 主题（最大化素材复用）
 
+### 4.1.1 选题兴趣配置（基于 TrendRadar AI interests · 2026/6/28 新增）
+
+**为什么这条**：TrendRadar 是用户的自建热点雷达项目（v6.10.0），抓 40+ RSS 源（**含 5 个微信公众号**：华尔街见闻 / 半导体产业纵横 / TMT 研究院 / 产业投研院 / 大宗商品）+ 20+ 热榜平台（财联社 / 36 氪 / 雪球等）。它的 `config/ai_interests.txt` 定义了 15 类投资兴趣 + AI 智能筛选，是 content-factory 的"上游选题源"。本节把 TrendRadar 的兴趣配置**映射到 content-factory 的 9 大主题**，让选题不重复、不漏点。
+
+**数据流**：
+```
+TrendRadar (40 RSS + 20 平台)
+   ↓ daily 抓取 + AI 智能筛选
+   ↓ output/rss/YYYY-MM-DD.db (sqlite)
+   ↓ ai_interests.txt 15 类兴趣
+content-factory
+   ↓ 4.1 选题：看 TrendRadar 今日 AI 筛选结果
+   ↓ 4.1.1 兴趣映射：跟 9 大主题做对照
+   ↓ 4.2 研究：抓具体公司 + 公告
+```
+
+**15 类兴趣 × 9 大主题 映射表**（已发 9 篇 + 选题库）：
+
+| # | TrendRadar 兴趣类 | content-factory 已覆盖 | 空白 / 待补 |
+|---|---|---|---|
+| 1 | 中国科技与互联网公司（DeepSeek/华为/腾讯/字节） | 第 6 篇 ai-three-bottlenecks（陈立武 Intel CEO） + 第 1-2 篇 | 京东战略 / 字节产品节奏 |
+| 2 | 大模型与 AI 产品（OpenAI/Claude/Qwen/DeepSeek） | 部分覆盖 | **Qwen / GLM / DeepSeek-Coder 详细对比** ← 选题 5 |
+| 3 | AI 基础设施与云算力（英伟达/AMD/CUDA） | 第 6 篇 + 第 7-9 篇 + 选题 1/2 | **Token 算租** ← 选题 2 |
+| 4 | 芯片与半导体制造（光刻机/先进封装） | **第 7 篇 liquid-cooling + 第 8 篇 glass-substrate + 第 9 篇 glass-bridge-cpo（3 篇强项）** | HBM / ASIC / 算力金属 |
+| 5 | 智能汽车与自动驾驶（比亚迪/FSD/智驾） | 部分覆盖（摩根士丹利闭门会） | 比亚迪出海 / FSD 中国落地 |
+| 6 | 机器人与具身智能（宇树/智元/大疆） | 第 4 篇 cicc-ai-population | **灵巧手 2.0** ← 选题 4 |
+| 7 | 全球科技巨头（苹果/微软/谷歌/OpenAI） | 部分覆盖 | OpenAI vs Claude 财报对决 |
+| 8 | 地缘政治与国际关系（关税/制裁/脱钩） | 部分覆盖（第 8 篇台积电） | 中美 AI 芯片管制升级 |
+| 9 | 金融市场与宏观政策（美联储/汇率） | 部分覆盖（第 7 篇电力） | 美元降息对 A 股科技股影响 |
+| 10 | 能源与电力系统（光伏/水电/核电） | **第 5 篇 electric-power** | 雅鲁藏布江项目 / 核电重启 |
+| 11 | 航天与深空探索（SpaceX/卫星） | 未覆盖 | **商业航天** ← 选题 3 |
+| 12 | 前沿科学技术（量子/脑机接口） | 未覆盖 | 量子计算商用化 |
+| 13 | 文化 IP 与内容产业（黑神话/三体） | 未覆盖 | 不写(消费品赛道跨度过大) |
+| 14 | 零售与消费品牌（胖东来） | 未覆盖 | 不写(同上) |
+| 15 | 国家与区域观察（背景） | 间接覆盖 | — |
+
+**实际选题 vs 已发对照**：
+
+| 选题 | TrendRadar 触发源 | content-factory 已发 | 状态 |
+|---|---|---|---|
+| 选题 1 AI Memory Crunch | 财新 / Bloomberg / 半导体产业纵横 "HBM" + "美光长协 220 亿" | 第 3 篇 ai-three-bottlenecks 部分提 | 🆕 待开干 |
+| 选题 2 Token 算租 | 产业投研院 "算力租赁+独家壁垒" | 未覆盖 | 🆕 待开干 |
+| 选题 3 商业航天 | TrendRadar AI interests #11 + 6/25 飞书日报 | 未覆盖 | 🆕 待开干 |
+| 选题 4 灵巧手 2.0 | TrendRadar AI interests #6 + 6/25 飞书日报 | 第 4 篇 cicc-ai-population | 🆕 接续 |
+| 选题 5 China Coding | All-In Pod 6/27 + Bloomberg 6/27 | 未覆盖 | 🆕 待开干 |
+
+**TrendRadar AI 筛选结果接入流程**（每日 9:00 跑）：
+```bash
+# 1. 看 TrendRadar 今日 AI 筛选结果
+python3 << 'EOF'
+import sqlite3
+c = sqlite3.connect('~/001_project/TrendRadar/output/rss/2026-06-28.db')
+c.row_factory = sqlite3.Row
+for r in c.execute('''
+    SELECT i.title, i.url, f.name, f.id
+    FROM rss_items i
+    JOIN rss_feeds f ON i.feed_id = f.id
+    WHERE i.id IN (SELECT item_id FROM ai_filter_analyzed_news WHERE score > 0.7)
+    ORDER BY i.id DESC LIMIT 20
+'''):
+    print(f'[{r["name"]}] {r["title"][:80]}')
+    print(f'  {r["url"]}')
+EOF
+
+# 2. 跟 content-factory 9 大主题做对照(4.1.1 映射表)
+# 3. 选 3 个候选 → 跑 5 问过滤(4.1)
+# 4. 选 1 个开干
+```
+
+**5 类微信公众号独家信号**（TrendRadar 独有,content-factory bibi/RSS 抓不到）：
+- **华尔街见闻**(wechat-wsj) — 全球宏观 + 美股 + 半导体
+- **半导体产业纵横**(wechat-bdt) — 半导体产业链深度报告
+- **TMT 研究院**(wechat-tmt) — TMT 板块公司动态
+- **产业投研院**(wechat-cytouyan) — 行业深度 + 公司分析
+- **大宗商品价值投资俱乐部**(wechat-dzsp) — 大宗商品 + 周期股
+
+> **关键洞察**：TrendRadar 的 5 个微信公众号 = **content-factory 的"选题金矿"**。每天 30-50 条深度报告，AI 智能筛选后剩 5-10 条高质量候选。**之前 content-factory 自建的 bibi/RSS 系统可以退休**，全部用 TrendRadar。
+
+**扩展兴趣的方法**：
+1. 改 `~/001_project/TrendRadar/config/ai_interests.txt` 加新方向
+2. 跑 TrendRadar `python3 main.py --now` 触发 AI 重新分类
+3. 等 10 分钟后看 `output/rss/YYYY-MM-DD.db` 新结果
+4. 同步到本 SOP 4.1.1 映射表
+
 ### 4.2 研究（第 2 步，1 h）
 
 **素材来源优先级**：
