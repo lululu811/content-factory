@@ -71,21 +71,32 @@ python3 scripts/filter-candidates.py
 - 优先选**有卡点但市场讨论少**的方向
 - 配合 Obsidian 库里的 MOC 主题（最大化素材复用）
 
-### 4.1.1 选题兴趣配置（基于 TrendRadar AI interests · 2026/6/28 新增）
+### 4.1.1 选题兴趣配置（基于 TrendRadar AI interests · 2026/6/28 真实订阅刷新）
 
-**为什么这条**：TrendRadar 是用户的自建热点雷达项目（v6.10.0），抓 40+ RSS 源（**含 5 个微信公众号**：华尔街见闻 / 半导体产业纵横 / TMT 研究院 / 产业投研院 / 大宗商品）+ 20+ 热榜平台（财联社 / 36 氪 / 雪球等）。它的 `config/ai_interests.txt` 定义了 15 类投资兴趣 + AI 智能筛选，是 content-factory 的"上游选题源"。本节把 TrendRadar 的兴趣配置**映射到 content-factory 的 9 大主题**，让选题不重复、不漏点。
+**为什么这条**：TrendRadar 是用户的自建热点雷达项目（v6.10.0 + MCP v4.1.0），**实际订阅 44 个 feed**（不是早期认知的"5 个公众号 + 20 平台"），分 4 大类：
+- **微信公众号 4 个**（每个 10 条/日）：华尔街见闻 / 半导体产业纵横 / TMT 研究院 / 产业投研院
+- **B 站 UP 主 22 个**（每个 30-40 条/日）：小Lin说 / 半佛仙人 / 笨笨韭菜 / BOSS墨 / 创新药魔力 / 付鹏 / 黑鸦 / 红杉汇 / 华夏基金 / 雷神 / 厉害财经 / 卢克文 / 莫大韭菜 / 史诗级韭菜 / 王自如 / 雪球官方 / 战国时代 / 知行合一 / 追寻Alpha / 张小珺商业访谈录 / Web3天空之城 / 小白投资笔记
+- **财经/新闻/英文 18 个**：财联社电报+头条 / 华尔街见闻实时 / 36氪快讯+最新 / 界面 / 中国日报财经 / 财新 / 雪球精华 / 21世纪经济报道 / 新财富 / 棱镜 / 雅虎财经 / Hacker News / 虎嗅 / Solidot / cnBeta
+- **半导体产业链专用 AI 兴趣**（`custom/ai/semiconductor.txt`）：10 类优先级 + 过滤规则，专攻半导体/AI算力/光通信/先进封装
+
+**每日产出**：`output/rss/YYYY-MM-DD.db` 1139 条 → AI 智能筛选 → Top 50-80 候选。
 
 **数据流**：
 ```
-TrendRadar (40 RSS + 20 平台)
-   ↓ daily 抓取 + AI 智能筛选
-   ↓ output/rss/YYYY-MM-DD.db (sqlite)
-   ↓ ai_interests.txt 15 类兴趣
+TrendRadar (44 feed × 4 类)
+   ├─ wewe-rss(微信公众号 4):每个 10 条/日
+   ├─ RSSHub(财经快讯 9 + B 站 UP 主 22)
+   └─ Hacker News / Yahoo Finance / Solidot / cnBeta(英文科技 4)
+   ↓ daily 抓取(8:00 cron)+ AI 智能筛选(ai_interests.txt 15 类 + custom/ai/semiconductor.txt 半导体专用)
+   ↓ output/rss/YYYY-MM-DD.db (sqlite, ~1139 条/日)
+   ↓ Top 50-80 高质量候选(过滤标题党/营销/无信息源)
 content-factory
    ↓ 4.1 选题：看 TrendRadar 今日 AI 筛选结果
    ↓ 4.1.1 兴趣映射：跟 9 大主题做对照
-   ↓ 4.2 研究：抓具体公司 + 公告
+   ↓ 4.2 研究：扫 ZsxqCrawler 原始 + 抓具体公司 + 公告
 ```
+
+> **重要更新（2026/6/28）**：早期 SOP 误以为 TrendRadar 只有 5 个微信公众号，实际 44 个 feed 每日 1139 条（含 B 站 UP 主 22 个 + 半导体专用 AI 兴趣）。**刷新 SOP 时务必看 TrendRadar 最新 config.yaml，不要凭印象**。
 
 **15 类兴趣 × 9 大主题 映射表**（已发 9 篇 + 选题库）：
 
@@ -140,14 +151,26 @@ EOF
 # 4. 选 1 个开干
 ```
 
-**5 类微信公众号独家信号**（TrendRadar 独有,content-factory bibi/RSS 抓不到）：
-- **华尔街见闻**(wechat-wsj) — 全球宏观 + 美股 + 半导体
-- **半导体产业纵横**(wechat-bdt) — 半导体产业链深度报告
-- **TMT 研究院**(wechat-tmt) — TMT 板块公司动态
-- **产业投研院**(wechat-cytouyan) — 行业深度 + 公司分析
-- **大宗商品价值投资俱乐部**(wechat-dzsp) — 大宗商品 + 周期股
+**44 个 feed × 4 类分组**（TrendRadar 真实订阅清单，2026/6/28 刷新）：
 
-> **关键洞察**：TrendRadar 的 5 个微信公众号 = **content-factory 的"选题金矿"**。每天 30-50 条深度报告，AI 智能筛选后剩 5-10 条高质量候选。**之前 content-factory 自建的 bibi/RSS 系统可以退休**，全部用 TrendRadar。
+| 类别 | 数量 | 代表 feed | 每日文章 | 看点 |
+|---|---|---|---|---|
+| 🟢 **微信公众号** | 4 | wechat-wsj / wechat-bdt / wechat-tmt / wechat-cytouyan | 各 10 条 = 40 条 | 深度报告 + 行业分析 |
+| 🟢 **B 站 UP 主** | 22 | xiaolinshuo / banfoxianren / 笨笨韭菜 / 卢克文工作室 / 付鹏 / 雷神 / 王自如 / 张小珺商业访谈录 等 | 各 30-40 条 ≈ 680 条 | 音视频深度 + 大众解读 |
+| 🟢 **财经/新闻/英文** | 18 | 财联社/华尔街见闻/36 氪/财新/21财经/新财富/Hacker News/Yahoo Finance/Solidot/cnBeta | 各 5-75 条 ≈ 415 条 | 实时快讯 + 深度报道 |
+| 🟢 **半导体专用 AI 兴趣** | 10 类优先级 | `custom/ai/semiconductor.txt` 半导体产业链/AI算力/光通信/先进封装 | AI 筛选 → 50-80 候选 | 行业专项深度 |
+
+> **关键洞察**：44 个 feed = **content-factory 的"选题金矿"**。每天 1139 条，AI 智能筛选后剩 50-80 条高质量候选。**之前 content-factory 自建的 bibi/RSS 系统可以退休**，全部用 TrendRadar。
+
+**6 个微信公众号在 config.yaml 里注册但今日未拉到数据**（需排查 RSSHub 通路）：
+- `wechat-htzqcl` 华泰证券策略研究
+- `wechat-tfyanjiu` 天风研究
+- `wechat-bdtcygc` 半导体行业观察
+- `wechat-yckjpl` 远川科技评论
+- `wechat-kdcc` 看懂产业链
+- `wechat-zgzqb` 中国证券报
+
+→ 默认加入 `scripts/paused-channels.txt`，等用户手动验证 RSSHub/wewe-rss 通路后再启用。
 
 **扩展兴趣的方法**：
 1. 改 `~/001_project/TrendRadar/config/ai_interests.txt` 加新方向

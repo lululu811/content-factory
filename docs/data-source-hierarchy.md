@@ -57,15 +57,23 @@
 
 ### 4. TrendRadar(用户自建热点雷达 · v6.10.0 + MCP v4.1.0)
 - **位置**:`/Users/chenlei/001_project/TrendRadar/`
-- **数据域**:40+ RSS 源 + 20+ 热榜平台 + AI 智能筛选(15 类兴趣)
+- **数据域**:**44 个 feed × 4 类分组**(2026/6/28 刷新,实际订阅清单):
+  - 🟢 **微信公众号 4 个**(每个 10 条/日):华尔街见闻 / 半导体产业纵横 / TMT 研究院 / 产业投研院
+  - 🟢 **B 站 UP 主 22 个**(每个 30-40 条/日 ≈ 680 条):小Lin说 / 半佛仙人 / 笨笨韭菜 / BOSS墨 / 创新药魔力 / 付鹏 / 黑鸦 / 红杉汇 / 华夏基金 / 雷神 / 厉害财经 / 卢克文 / 莫大韭菜 / 史诗级韭菜 / 王自如 / 雪球官方 / 战国时代 / 知行合一 / 追寻Alpha / 张小珺商业访谈录 / Web3天空之城 / 小白投资笔记
+  - 🟢 **财经/新闻/英文 18 个**(各 5-75 条 ≈ 415 条):财联社电报+头条 / 华尔街见闻实时 / 36氪快讯+最新 / 界面新闻 / 中国日报财经 / 财新 / 雪球精华 / 21世纪经济报道 / 新财富 / 棱镜 / 雅虎财经 / Hacker News / 虎嗅 / Solidot / cnBeta
+  - 🟢 **半导体产业链专用 AI 兴趣**:`config/custom/ai/semiconductor.txt` 10 类优先级 + 过滤规则
+- **每日产出**:`output/rss/YYYY-MM-DD.db` **1139 条** → AI 智能筛选(15 类 + 半导体专用)→ **Top 50-80 候选**
 - **写文章用法**:
-  - **选题库**:`output/rss/YYYY-MM-DD.db` 看今日 AI 筛选 Top 20
-  - **5 个微信公众号独家**:华尔街见闻 / 半导体产业纵横 / TMT 研究院 / 产业投研院 / 大宗商品
-  - **机构视角深度报告**:每天 30-50 条,AI 智能筛选后剩 5-10 条
-- **使用门槛**:TrendRadar 服务需要跑(本地 + docker)
-- **替代**:`scripts/rss-feed.py`(10 频道,已被 TrendRadar 完全覆盖,可退休)
+  - **选题库**:每日 9:00 跑 TrendRadar,看 `output/rss/YYYY-MM-DD.db` 的 ai_filter_analyzed_news
+  - **微信公众号深度**:4 个公众号每日 40 条原文,半导体产业链独家价值
+  - **B 站 UP 主**:22 个 UP 主覆盖财经/科技/AI 各赛道,音视频驱动选题
+  - **财经快讯**:财联社/华尔街见闻实时 → 即时热点
+  - **半导体专用筛选**:`custom/ai/semiconductor.txt` 针对半导体/AI算力/光通信/先进封装
+- **使用门槛**:TrendRadar 服务需要跑(本地 + docker + RSSHub + wewe-rss)
+- **替代**:无(TrendRadar 已完全覆盖 bibi/RSS + 微信公众号 + B 站 UP 主)
+- **6 个未拉通的微信公众号**(默认暂停):华泰证券策略研究 / 天风研究 / 半导体行业观察 / 远川科技评论 / 看懂产业链 / 中国证券报(等用户手动验证 RSSHub/wewe-rss 通路)
 - **示例**:见 `docs/ai-interests-mapping.md` 的 Python 脚本
-- **重要性**:**content-factory 的"上游选题源"**,比 bibi/RSS 强 10 倍
+- **重要性**:**content-factory 的"上游选题源",比 bibi/RSS 强 10 倍**,2026/6/28 刷新后实际覆盖 44 feed
 
 ### 5. research-reports /query(知识库 · 1053 概念 + 2181 飞书日报)
 - **位置**:`~/003_knowledge/knowledge_base/research-reports/`

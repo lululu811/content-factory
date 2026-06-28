@@ -10,3 +10,16 @@
 Acquired - YouTube
 All-In Podcast - YouTube
 Bg2 Pod - YouTube
+# --- TrendRadar feed RSSHub/wewe-rss 抓取失败(2026/6/28 排查) ---
+# 7 个 feed 在 config.yaml 注册但 RSS 抓取失败,未进入 rss_feeds 表
+# 修法(等用户手动验证 RSSHub/wewe-rss 通路):
+#   1. wechat-* 6 个: 验证 wechat.zknowledge.site 是否收录这些公众号 ID
+#   2. ruanyifeng: 验证 RSSHub ruanyifeng 路由(/ruanyifeng/weekly)
+# 解除暂停:删除对应行 + 修复 RSSHub + 重新跑 TrendRadar
+wechat-bdtcygc:半导体行业观察
+wechat-htzqcl:华泰证券策略研究
+wechat-kdcc:看懂产业链
+wechat-tfyanjiu:天风研究
+wechat-yckjpl:远川科技评论
+wechat-zgzqb:中国证券报
+ruanyifeng:阮一峰的网络日志
