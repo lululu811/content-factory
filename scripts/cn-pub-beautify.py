@@ -297,7 +297,13 @@ def rule_1_tldr_card(frontmatter: str, body: str) -> tuple:
     1. frontmatter 有 tldr 字段 → 用其生成完整卡片(一句话 + 关键数据)
     2. 正文有 > **摘要**: 段 → 简化版(只有一句话)
     3. 都没有 → 返回 (body, 0) + 警告(让 beautify 主函数输出)
+
+    跳过逻辑:如果 body 已经有 📌 **TL;DR 一句话版**,不再插入(避免重复)
     """
+    # 防重复:body 已存在 TL;DR 卡片就跳过
+    if '> 📌 **TL;DR 一句话版**' in body:
+        return body, 0
+
     tldr = parse_tldr_from_frontmatter(frontmatter)
     if tldr.get('one_liner') or tldr.get('key_data'):
         # 完整版
