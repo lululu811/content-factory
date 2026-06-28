@@ -10,7 +10,7 @@
 
 | 类别 | 数量 | 用途 | 出现位置 |
 |---|---|---|---|
-| 🟢 **主要数据源** | 6 个 | 写文章**主要依据**(行情/公告/调研/技术/选题/趋势) | 正文数据 + Step 3 + 5 分类表 |
+| 🟢 **主要数据源** | 7 个 | 写文章**主要依据**(行情/公告/调研/技术/选题/趋势/原始) | 正文数据 + Step 0/3 + 5 分类表 |
 | 🟡 **验证数据源** | 3 个 | 交叉验证 / 披露合规 / 反共识溯源 | A16 data_verified + 反共识 5/6 |
 | 🔵 **理论支撑** | 2 个 | 背景 / 历史 / 方法论 | 概念框架 + MOC + 引言 |
 
@@ -18,7 +18,24 @@
 
 ## 二、🟢 主要数据源(写文章主要用)
 
-### 1. myMCP (Tushare 兼容接口 · 258 工具)
+### 1. ZsxqCrawler 原始导出(知识星球抓的 .md · 精度最高源 · 2026/6/28 升 P0)
+- **位置**:`/Users/chenlei/002_tools/ZsxqCrawler/output/export_by_date/`
+- **数据域**:**2895 条原始话题**(2024-11 → 2026-06,21 个月),按月份分目录,文件名格式 `MM-DD_<主题>.md`
+- **元数据保留完整**:日期 / 作者 / 类型 / 点赞 / 评论 / 阅读 / ID(知识星球原始 ID)
+- **内容结构**:每篇 5-15 个章节,章节里有具体观点/数字/公司名
+- **写文章用法**:
+  - **Step 0 必跑**(SOP 4.2.1):扫文件名 + 章节 grep + 读前后 2-3 段
+  - **正文引用格式**:`[来源:ZsxqCrawler YYYY-MM-DD / 作者 / 第 X 节 / 段落 N]`
+  - **frontmatter 硬约束**(SOP 4.3.7):`zsxq_crawler.cited_sections ≥ 1`
+- **使用门槛**:0(本地路径)
+- **替代**:无(其他源都不保留作者/点赞等元数据)
+- **注意事项**:
+  - 章节标题看起来像"总结",**具体观点/数字藏在前后段落**
+  - 引用时必须保留作者 + 日期 + ID(三件套),否则算二手引用
+- **示例**:`06-01_AI算力链更新.md`(黄仁勋 GTC Taipei 2026 演讲)
+- **重要性**:**content-factory 的精度最高源**。用户 6/28 核心洞察:知识库二次总结丢失精度 → ZsxqCrawler 原始导出升 P0。
+
+### 2. myMCP (Tushare 兼容接口 · 258 工具)
 - **位置**:mavis MCP 服务,URL `https://fast.xiaodefa.cn/mcp/?token=...`
 - **数据域**(8 大域):沪深股票(行情/财务/资金)/板块/沪深港通/宏观/海外/研报
 - **写文章用法**:
@@ -75,18 +92,7 @@
 - **示例**:见 `docs/ai-interests-mapping.md` 的 Python 脚本
 - **重要性**:**content-factory 的"上游选题源",比 bibi/RSS 强 10 倍**,2026/6/28 刷新后实际覆盖 44 feed
 
-### 5. research-reports /query(知识库 · 1053 概念 + 2181 飞书日报)
-- **位置**:`~/003_knowledge/knowledge_base/research-reports/`
-- **数据域**:你长期积累的高质量原料
-  - `wiki/concepts/` — 1053 个概念文件(如 玻璃基板.md / TGV.md / HBM-高带宽存储器.md)
-  - `wiki/sources/` — 2181 个飞书日报(如 摘要-2026-06-25-ai链更新-玻璃桥玻璃基板.md)
-- **写文章用法**:
-  - **A17 research_reports 必跑**:每篇文章 frontmatter 必填,命中的概念 + linked_concepts
-  - **正文双链 `[[概念名]]`**:Obsidian 用户可直接跳转
-  - **Step 0 研究**:`scripts/research-reports-query.sh "<主题>"` 找相关概念
-- **使用门槛**:0(本地路径)
-- **替代**:手工 web_search(效率低 10 倍)
-- **示例**:`bash scripts/research-reports-query.sh "CPO 玻璃桥"`
+### 5. (已降级为理论支撑 — 见第 11 项)
 
 ### 6. bibi / B 站音视频(50 条/天 · scripts/bibi-safe.py + scripts/bibi)
 - **位置**:本地脚本,调用 bibigpt API
@@ -135,7 +141,18 @@
 
 ## 四、🔵 理论支撑(背景/方法论)
 
-### 10. SOP.md + docs/ 文档(content-factory 内部)
+### 10. research-reports /query(知识库 · 降级为概念索引 · 2026/6/28)
+- **位置**:`~/003_knowledge/knowledge_base/research-reports/`
+- **数据域**:你长期积累的概念库(MOC 索引)
+  - `wiki/concepts/` — 1053 个概念文件(背景资料,不再作为正文论据)
+  - `wiki/sources/` — 2181 个飞书日报(二次总结,**精度低于 ZsxqCrawler 原始**)
+- **写文章用法**(**降级为可选**):
+  - 仅作为概念索引(MOC 主题关联),不复用作数据源
+  - 不再硬约束 `linked_concepts ≥ 1`(SOP 4.3.6 软化)
+- **使用门槛**:0(本地路径)
+- **重要性**:**降级为理论支撑**。6/28 用户洞察:知识库二次总结丢失精度 → ZsxqCrawler 原始导出升 P0 替代其作为数据源。
+
+### 11. SOP.md + docs/ 文档(content-factory 内部)
 - **位置**:`SOP.md` / `docs/cn-pub-style-guide.md` / `docs/ai-interests-mapping.md`
 - **数据域**:content-factory 自身的流程文档
 - **用法**:

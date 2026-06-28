@@ -180,34 +180,93 @@ EOF
 3. 等 10 分钟后看 `output/rss/YYYY-MM-DD.db` 新结果
 4. 同步到本 SOP 4.1.1 映射表
 
-### 4.2 研究（第 2 步，1 h）
+### 4.2 研究（第 2 步，2-3 h）
+
+> **2026/6/28 重构**：知识库二次总结丢失精度 → ZsxqCrawler 原始文件升 P0(必跑),research-reports /query 降级为可选(MOC 概念库)。
 
 **素材来源优先级**：
 
-| 来源 | 用法 |
-|---|---|
-| **🆕 research-reports /query skill** | **Step 0 必跑**：在 `~/003_knowledge/knowledge_base/research-reports/` 的 1053 个概念 + 2181 个飞书日报里检索已有素材 |
-| serenity-skill | 跑产业链深度研究（必跑） |
-| web search (matrix_web_search) | 补 2026 H1 最新数据 |
-| bibigpt summarize --chapter | 拿音视频素材结构化大纲 |
+| 来源 | 角色 | 用法 |
+|---|---|---|
+| 🥇 **ZsxqCrawler 原始导出**(新 P0) | **一手机构观点** | **Step 0 必跑**:扫文件 + 章节 grep + 段落读(详见 4.2.1) |
+| 🥈 serenity-skill | 产业链深度 | 跑公告/财报/问询函(必跑) |
+| 🥉 industry-kol-scan.py | 防漏标 | **Step 1.5 从发文前移到研究阶段**(详见 4.2.3) |
+| 4️⃣ web_search | 2026 H1 数据 | 补最新数据 + 海外视角 |
+| 5️⃣ cninfo-anns + myMCP | 公告 + 行情/估值 | 硬数据(必跑) |
+| 6️⃣ research-reports /query | MOC 概念库 | **可选**:只查 MOC 主题/概念关联 |
+| 7️⃣ bibigpt summarize --chapter | 音视频素材 | 选题灵感(TrendRadar 已覆盖大部分) |
 
-#### 4.2.1 research-reports /query 必跑（Step 0，硬约束）
+#### 4.2.1 ZsxqCrawler 原始导出（Step 0，硬约束 · 2026/6/28 新增）
 
-**为什么放在第一位**：research-reports 已有 1053 个概念 + 2181 个飞书日报 source，是长期积累的高质量原料。**不查 = 浪费 = 文章浅**。
+**为什么这条**：用户 6/28 核心洞察——**知识库二次总结会丢失精度**。ZsxqCrawler 是知识星球抓的**原始 .md 文件**(2895 条话题,2024-11 → 2026-06),保留作者/日期/ID/点赞/阅读量等完整元数据,是 content-factory 的**精度最高源**。文件结构:`MM-DD_<主题>.md`,每篇文章 5-15 个章节,章节里有具体观点/数字/公司名。
 
-**强制 3 步**（写新文章前必跑）：
+**强制 4 步**(写新文章前必跑):
 
-1. **快速扫**:跑 `bash scripts/research-reports-query.sh "<主题关键词>"` 看返回的 top 10 匹配概念
-   - 例:`bash scripts/research-reports-query.sh "电力 算力 数据中心"`
-   - 返回:`AI电力.md` / `AIDC.md` / `数据中心电源.md` / `核电.md` 等
-2. **深度读**:对 top 5-10 概念,用 Read 工具读完整内容,提取关键数据/公司/观点
-3. **写进 frontmatter**:在文章 frontmatter 加 `research_reports:` 字段,记录用过的概念 + 飞书日报源(详见 4.3.6)
+1. **扫文件名**(粗筛主题相关)
+   ```bash
+   # 扫最近 3 个月 + 关键词
+   rg -l "<关键词>" /Users/chenlei/002_tools/ZsxqCrawler/output/export_by_date/2026/
+   # 例:rg -l "玻璃基板" /Users/chenlei/002_tools/ZsxqCrawler/output/export_by_date/2026/
+   ```
 
-**降级处理**:如果 research-reports 无相关内容,在 frontmatter 加 `research_reports.queried_at` + `research_reports.found_concepts: 0` 标记,而不是跳过不查。
+2. **读章节标题 + 内容 grep**(精筛)
+   ```bash
+   # 在命中的文件里 grep 章节
+   rg -n "<关键词>" /path/to/<file>.md
+   # 例:rg -n "玻璃基板" 06-01_AI算力链更新.md
+   # 返回:章节标题:行号 + 命中段落
+   ```
 
-**实测案例**(electric-power):
-- 查询"电力 算力 数据中心" → 命中 10+ 概念:`AI电力.md`(142 行) / `核电.md` / `AI算力数据中心电力结构.md` 等
-- 比单凭印象写深 3-5 倍
+3. **读章节前后 2-3 段**(拿完整观点)
+   - 章节标题看起来像"总结",但**具体观点/数字藏在前后段落**
+   - 例:章节标题"1)核心叙事:Token 经济学",但"6 兆晶体管 / 150 家供应链 / 台湾从一开始就和我们在一起"在前 2 段
+
+4. **写进 frontmatter**(详见 4.3.7 A17 新字段)
+   ```yaml
+   zsxq_crawler:
+     queried_at: "2026-06-25"
+     found_files: 8
+     cited_sections: 12
+     citations:                # 引用列表(硬约束 ≥ 1)
+       - file: "06-01_AI算力链更新.md"
+         author: "乐晴"
+         date: "2026-06-01"
+         section: "1) 黄仁勋 GTC Taipei 2026 演讲要点总结"
+         paragraph: "Vera Rubin 全面量产确认..."
+   ```
+
+**降级处理**:如果 ZsxqCrawler 无相关内容,在 frontmatter 加 `zsxq_crawler.queried_at` + `zsxq_crawler.found_files: 0` 标记,而不是跳过不扫。
+
+**实战案例**(glass-substrate / glass-bridge-cpo):
+- 扫"玻璃基板" + "玻璃桥" → 命中 15+ 文件(2025-12 → 2026-06)
+- 章节 grep → 锁定关键观点(如"帝尔激光面板级 TGV 设备出货")
+- 引用格式:`[来源:ZsxqCrawler 2026-04-15 / 国泰海通电子 / 第 3 节 / 段落 2]`
+
+#### 4.2.1b research-reports /query 降级为可选（2026/6/28 修改）
+
+**为什么降级**：知识库二次总结会丢失精度,直接读 ZsxqCrawler 原始比查 knowledge MOC 更准。
+
+**保留用途**(仅作为概念索引,不是数据源):
+- 查主题 MOC 索引(`wiki/moc/` 的概念关联)
+- 查历史概念背景(已发 9 篇的复用)
+- 查跨主题概念(`玻璃基板 ↔ 玻璃桥 ↔ CPO`)
+
+**不再作为数据源**:
+- ❌ 不再用 `linked_concepts` 里的"摘要"作为正文引用
+- ❌ 不再用 `linked_sources` 里的"摘要"作为论据
+- ✅ 改用 ZsxqCrawler 原文段落作为引用
+
+**frontmatter 软提示字段**(从硬约束改为软提示):
+```yaml
+research_reports:
+  queried_at: "2026-06-25"           # 软提示(留作溯源用)
+  found_concepts: 12                 # 软提示(0 命中也允许)
+  read_concepts: 8                   # 软提示
+  linked_concepts:                   # 软提示(可空)
+    - name: "AI电力"
+      path: "wiki/concepts/AI电力.md"
+      used_for: "电力板块定位"
+```
 
 #### 4.2.2 serenity-skill + research-reports 互补
 
@@ -347,34 +406,58 @@ python3 scripts/industry-kol-scan.py \
 每篇发布前过 `templates/compliance/checklist.md` 10 项检查。
 高风险词（"买入/卖出/目标价/推荐/保证/加仓/稳赚"等）只能出现在免责声明反向表达中。
 
-#### 4.3.6 🆕 research-reports 查证记录（frontmatter 硬约束）
+#### 4.3.6 research_reports 查证记录（frontmatter 软提示 · 2026/6/28 软化）
 
-**为什么这条**：把 research-reports 跟 content-factory 双向打通的关键——**让每篇文章都自带 research-reports 的深度**,同时反向登记"这篇文章用了 research-reports 哪些原料"。
+**为什么软化**：用户 6/28 核心洞察——知识库二次总结丢失精度 → ZsxqCrawler 原始导出成为**新的硬约束**,research_reports 降级为**概念索引软提示**。
 
-**frontmatter 必填字段**：
+**frontmatter 软提示字段**（不再硬 FAIL）：
 
 ```yaml
 research_reports:
-  queried_at: "2026-06-25"           # research-reports /query 调用时间
-  found_concepts: 12                 # 命中的概念数
-  read_concepts: 8                   # 实际深度读的概念数
-  linked_concepts:                   # 用到的概念（指向 research-reports 里的文件）
+  queried_at: "2026-06-25"           # 软提示(留作溯源,不再 ≤ 30 天硬约束)
+  found_concepts: 12                 # 软提示(0 命中也允许)
+  read_concepts: 8                   # 软提示
+  linked_concepts:                   # 软提示(可空,仅作为概念索引)
     - name: "AI电力"
       path: "wiki/concepts/AI电力.md"
       used_for: "电力板块定位 + 4 大赛道画像"
-    - name: "核电"
-      path: "wiki/concepts/核电.md"
-      used_for: "中国核电 vs 中国广核双寡头对比"
-  linked_sources:                    # 用到的飞书日报 source
-    - date: "2025-06-16"
-      path: "wiki/sources/摘要-2025-06-18-核聚变+核电+铀矿更新.md"
-      used_for: "核电保底机制最新数据"
-  skipped_reason: ""                 # 如果 found_concepts = 0,说明跳过原因
+  skipped_reason: ""                 # 软提示
 ```
 
-**正文中的引用**：在文章正文引用 research-reports 概念时,用 Obsidian 双链 `[[概念名]]` 格式(让 Obsidian 用户能直接跳转)。
+**正文中的引用**：仍用 Obsidian 双链 `[[概念名]]` 格式(让 Obsidian 用户能跳转),但**不再作为论据**——论据改用 ZsxqCrawler 原始导出。
 
-**自动化检查**(后续可加):compliance-check.py 加 A17 检查——`research_reports.queried_at` 距今 ≤ 30 天。
+#### 4.3.7 🆕 zsxq_crawler 查证记录（frontmatter 硬约束 · 2026/6/28 新增）
+
+**为什么是硬约束**：ZsxqCrawler 原始导出是 content-factory **精度最高源**(2895 条话题,完整保留作者/日期/ID/点赞/阅读量),每篇深度文**必须基于至少 1 条原始观点**,否则属于"凭印象写"。
+
+**frontmatter 硬约束字段**：
+
+```yaml
+zsxq_crawler:
+  queried_at: "2026-06-25"           # ZsxqCrawler 扫描时间,距今 ≤ 30 天(硬约束)
+  found_files: 8                     # 命中的 .md 文件数
+  cited_sections: 12                 # 引用章节数(硬约束 ≥ 1)
+  cited_paragraphs: 35               # 引用段落数
+  citations:                          # 引用列表(必填 ≥ 1)
+    - file: "06-01_AI算力链更新.md"
+      author: "乐晴"
+      date: "2026-06-01"
+      section: "1) 黄仁勋 GTC Taipei 2026 演讲要点总结"
+      paragraph: "Vera Rubin 已投入全面量产..."
+      quote: "台湾从一开始就和我们在一起"
+  skipped_reason: ""                 # found_files = 0 时必填
+```
+
+**正文引用格式**：
+```
+[来源:ZsxqCrawler 2026-06-01 / 乐晴 / 第 1 节"黄仁勋 GTC Taipei 2026 演讲要点总结" / 段落 3]
+```
+
+**自动化检查**（compliance-check.py 加 A17b）：
+- `zsxq_crawler.queried_at` 距今 ≤ 30 天 → FAIL
+- `zsxq_crawler.cited_sections` ≥ 1 → FAIL
+- `zsxq_crawler.citations` ≥ 1 项 → FAIL
+- 任何一条 FAIL → publish --strict 拒绝发布
 
 ### 4.4 配图生成（matplotlib 标准）
 
