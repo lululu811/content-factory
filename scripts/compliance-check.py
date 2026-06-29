@@ -584,8 +584,9 @@ def check_17b_zsxq_crawler(content: str, slug: str) -> Tuple[str, str]:
         )
 
     if issues:
-        # 区分硬/软:过期/缺失/为0/解析失败 → FAIL
-        hard_keywords = ['硬 FAIL', '缺失', '解析失败', '= 0', '已过期']
+        # 区分硬/软:正文引用数 = 0 是软 WARN(只 WARN,非 FAIL)
+        # 硬问题:queried_at 过期/缺失 + cited_sections/citations = 0(且无 skipped_reason)
+        hard_keywords = ['硬 FAIL', '缺失', '解析失败', '已过期', 'cited_sections = 0', 'citations = 0 项']
         hard_issues = [i for i in issues if any(k in i for k in hard_keywords)]
         status = 'FAIL' if hard_issues else 'WARN'
         return status, '; '.join(issues[:3]) + (f' ... 共 {len(issues)} 项' if len(issues) > 3 else '')
