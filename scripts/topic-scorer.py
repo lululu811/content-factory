@@ -42,11 +42,21 @@ MOC_KEYWORDS = {
 }
 
 HIGH_VALUE_CHANNELS = {
+    # B站/抖音频道
     '小白投资笔记': 15,  # 摩根/中金一手转述
     '小黄的投资笔记': 12,  # 中金/大摩深度
     'Redknot-乔红': 10,  # HBM/技术深度
     '巫师财经': 8,
     '小Lin说': 8,
+    # YouTube RSS 频道
+    'Bloomberg Television': 15,  # 全球财经第一媒体
+    'Wall Street Journal': 12,  # 华尔街日报
+    'Financial Times': 12,  # 英国金融时报
+    'a16z': 10,  # 顶级 VC
+    'Lex Fridman': 8,  # 深度访谈 AI/科技大佬
+    'The Information': 10,  # 硅谷深度科技媒体
+    'Acquired': 10,  # 商业史+并购分析
+    'All-In Podcast': 10,  # 硅谷投资人圆桌
 }
 
 PERSONAL_RELEVANCE_KEYWORDS = ['投研', '产业', '投资', '财经', '深度', '趋势', '预测']
@@ -197,15 +207,24 @@ def score_topic(item):
 def main():
     import argparse
     parser = argparse.ArgumentParser(description='选题评分系统')
-    parser.add_argument('input', help='输入 feed JSON 路径')
+    parser.add_argument('input', nargs='?', help='输入 feed JSON 路径（位置参数）')
+    parser.add_argument('--input', dest='input_flag', help='输入 feed JSON 路径（标志参数）')
     parser.add_argument('--top', type=int, default=10, help='输出 Top N')
     parser.add_argument('--min-total', type=int, default=50, help='最低总分阈值')
+    parser.add_argument('--output', help='输出 JSON 文件路径（默认: 输入文件名.scored.json）')
     args = parser.parse_args()
+    input_path = args.input_flag or args.input
+    if not input_path:
+        parser.error('请提供输入文件路径（位置参数或 --input）')
 
-    with open(args.input) as f:
+    with open(input_path) as f:
         data = json.load(f)
 
-    items = data.get('items', [])
+    # 兼容两种格式: raw feed {"items": [...]} 或 filtered flat list [...]
+    if isinstance(data, list):
+        items = data
+    else:
+        items = data.get('items', [])
     scored = [score_topic(item) for item in items]
     scored.sort(key=lambda x: x['total'], reverse=True)
 
@@ -213,7 +232,7 @@ def main():
     print(f"════════════════════════════════════════════")
     print(f"📊 选题评分系统 · Top {args.top}")
     print(f"════════════════════════════════════════════")
-    print(f"输入: {args.input}")
+    print(f"输入: {input_path}")
     print(f"总候选: {len(items)} 条")
     print(f"过滤后: {sum(1 for s in scored if s['total'] >= args.min_total)} 条 ≥ {args.min_total} 分")
     print()
@@ -233,7 +252,7 @@ def main():
         print()
 
     # 同时输出 JSON 结果（给 publish.sh 用）
-    output_json = args.input.replace('.json', '.scored.json')
+    output_json = args.output or input_path.replace('.json', '.scored.json')
     with open(output_json, 'w') as f:
         json.dump(scored[:args.top], f, ensure_ascii=False, indent=2)
     print(f"💾 JSON 输出: {output_json}")

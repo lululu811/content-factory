@@ -1,0 +1,72 @@
+[
+  {
+    "title": "Bloomberg Television",
+    "platform": "youtube",
+    "rss_url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCIALMKvObZNtJ6AmdCLP7Lg",
+    "category": "海外财经",
+    "priority": "high"
+  },
+  {
+    "title": "Wall Street Journal",
+    "platform": "youtube",
+    "rss_url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC7cs3TRsfoj1fMJCn2JD8TA",
+    "category": "海外财经",
+    "priority": "high"
+  },
+  {
+    "title": "Financial Times",
+    "platform": "youtube",
+    "rss_url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCnJY-xU_4M2hl5SdF9LoQg",
+    "category": "海外财经",
+    "priority": "high"
+  },
+  {
+    "title": "a16z",
+    "platform": "youtube",
+    "rss_url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC9BzA6nS-4bNh0fRZ9Z9ZQ",
+    "category": "海外科技",
+    "priority": "high"
+  },
+  {
+    "title": "Lex Fridman",
+    "platform": "youtube",
+    "rss_url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCSHZKyawb77ixVdsGog3iAA",
+    "category": "海外科技",
+    "priority": "medium"
+  },
+  {
+    "title": "The Information",
+    "platform": "youtube",
+    "rss_url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCqK1Gz1VnJkzL5WqYyJX3A",
+    "category": "海外科技",
+    "priority": "high"
+  },
+  {
+    "title": "Acquired",
+    "platform": "youtube",
+    "rss_url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCyFqFYfTW2VoIQKylJ04Rtw",
+    "category": "海外商业",
+    "priority": "medium"
+  },
+  {
+    "title": "All-In Podcast",
+    "platform": "youtube",
+    "rss_url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCESLZhusAkFfsNsApnjF_Cg",
+    "category": "海外科技",
+    "priority": "medium"
+  },
+  {
+    "title": "晚点聊 LateTalk",
+    "platform": "podcast",
+    "rss_url": "https://www.xiaoyuzhoufm.com/podcast/61933ace1b4320461e91fd55",
+    "category": "商业",
+    "priority": "high"
+  },
+  {
+    "title": "What's Next 科技早知道",
+    "platform": "podcast",
+    "rss_url": "https://www.xiaoyuzhoufm.com/podcast/5e74b52c418a84a046ecaceb",
+    "category": "科技",
+    "priority": "medium"
+  }
+]

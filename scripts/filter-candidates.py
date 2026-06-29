@@ -45,7 +45,8 @@ def main():
     for it in data.get("items", []):
         sec = parse_duration(it.get("duration"))
         pub = it.get("publishedAt", "")
-        if sec <= args.min_duration:
+        # duration=0 表示 RSS 源未提供时长，跳过滤长过滤
+        if sec > 0 and sec <= args.min_duration:
             continue
         if pub < cutoff:
             continue
@@ -56,7 +57,7 @@ def main():
             "duration": it.get("duration"),
             "publishedAt": pub,
             "sec": sec,
-            "minute": round(sec / 60, 1),
+            "minute": round(sec / 60, 1) if sec > 0 else 0,
         })
 
     filtered.sort(key=lambda x: x["publishedAt"], reverse=True)
