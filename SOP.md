@@ -13,18 +13,21 @@
 
 ---
 
-## 二、工具栈优先级
+## 二、工具栈优先级(2026/6/29 重构)
+
+> **关键变化**:Obsidian research-reports 降级为概念索引(精度低于 ZsxqCrawler 原始);
+> TrendRadar 升 P0(50 feed, 1302 条/日,完全覆盖 bibi/RSS)。
 
 | 优先级 | 工具 | 角色 | 何时用 |
 |---|---|---|---|
-| 🥇 P0 | **Obsidian research-reports** | 内容中枢 | 所有选题都从这里开始 |
-| 🥈 P1 | **ZsxqCrawler 飞书日报** | 市场观点对照 | 写作时查"市场在讨论什么" |
-| 🥉 P2 | **bibigpt feed** | 音视频素材 | 选题灵感 / 单篇补研 |
-| 🏅 P3 | **serenity-skill** | 深度补研 | 知识库没覆盖的新方向 |
-| 🎨 工具 | **mmx image generate** | 视觉生产 | 封面 |
-| 📊 工具 | **matplotlib** | 信息图 | **正文配图（比 mmx 强）** |
-| 🧠 引擎 | **zettaranc-skill** | 表达引擎 | **极简版**，只用于个人判断 |
-| ⚙️ 引擎 | **Serenity 方法论** | 表达引擎 | **核心**，占 70-80% 文章篇幅 |
+| 🥇 P0 | **TrendRadar** | 选题雷达 | 每日 8:00 跑 50 feed → AI 筛选 → Top 50-80 候选 |
+| 🥈 P1 | **ZsxqCrawler 原始导出** | 精度最高源 | 研究阶段 Step 0:扫文件 + 章节 grep + 段落读(必跑) |
+| 🥉 P2 | **myMCP (Tushare 兼容)** | 硬数据 | 估值/股价/市值/资金流(每日 1302+ 数据点) |
+| 4️⃣ 工具 | **cninfo + industry-kol-scan + web_search** | 公告 + 防漏标 | 研究阶段补全 + A16 核验 |
+| 5️⃣ 降级 | **Obsidian research-reports** | 概念索引 | 仅作 MOC 主题关联,不作为数据源(详见 4.3.6) |
+| 🎨 工具 | **matplotlib** | 信息图 | 正文配图(mmx 已退休) |
+| ⚙️ 引擎 | **Serenity 方法论** | 表达引擎 | **核心**,占 70-80% 文章篇幅 |
+| 🧠 引擎 | **zettaranc-skill** | 表达引擎 | **极简版**,只用于个人判断(≤ 3 处) |
 
 ---
 

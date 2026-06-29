@@ -17,3 +17,9 @@ Bg2 Pod - YouTube
 #   2. ruanyifeng: 验证 RSSHub ruanyifeng 路由(/ruanyifeng/weekly)
 # 解除暂停:删除对应行 + 修复 RSSHub + 重新跑 TrendRadar
 ruanyifeng:阮一峰的网络日志
+
+# --- bibi 账户(2026/6/29 暂停) ---
+# daily-feed cron 已注释,1 个月后(2026/7/29)评估是否重启
+# 原因:7 天扣 381.8 分钟 / 100 分钟月额度(已超)
+# 替代:TrendRadar 50 feed(微信公众号 10 + B 站 22 + 财经新闻英文 18)完全覆盖
+bibi:账户额度耗尽,1 个月后重启

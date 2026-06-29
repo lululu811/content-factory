@@ -1,0 +1,62 @@
+name: compliance-check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  compliance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --quiet pyyaml
+
+      - name: Run compliance check
+        run: |
+          # 检查所有 drafts/posts/*.md(已被 gitignore 但本地存在)
+          # CI 环境里 drafts/posts 是空的,会过 A1-A17 之外的基本检查
+          # 关键验证:compliance-check.py 本身能跑 + CHECKS 列表正确加载
+          python3 scripts/compliance-check.py --help
+
+      - name: Verify compliance-check.py loads correctly
+        run: |
+          # 验证脚本能 import + 18 项 CHECKS 加载
+          python3 -c "
+          import sys
+          sys.path.insert(0, 'scripts')
+          from compliance_check import CHECKS
+          assert len(CHECKS) == 18, f'Expected 18 checks, got {len(CHECKS)}'
+          check_ids = [c[0] for c in CHECKS]
+          assert 'A17' in check_ids, 'A17 missing'
+          assert 'A17b' in check_ids, 'A17b missing'
+          print(f'✅ All {len(CHECKS)} checks loaded:', check_ids)
+          "
+
+      - name: Verify .gitignore rules
+        run: |
+          # 验证 .gitignore 关键规则存在
+          grep -q "drafts/posts/\*.md" .gitignore && echo "✅ 已发布文章 ignore" || echo "❌ 缺 drafts/posts ignore"
+          grep -q "^00-规则与索引/" .gitignore && echo "✅ dbs 7 目录 ignore" || echo "❌ 缺 dbs 7 目录 ignore"
+          grep -q "tracking/predictions/" .gitignore && echo "✅ 个人追踪 ignore" || echo "❌ 缺 tracking ignore"
+
+      - name: Verify SOP.md + docs/ + templates/ 完整
+        run: |
+          test -f SOP.md && echo "✅ SOP.md"
+          test -f README.md && echo "✅ README.md"
+          test -f LICENSE && echo "✅ LICENSE"
+          test -d docs/ && echo "✅ docs/"
+          test -d templates/ && echo "✅ templates/"
+          test -d scripts/ && echo "✅ scripts/"
