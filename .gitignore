@@ -39,7 +39,12 @@ drafts/posts/*.styled.md
 drafts/posts/*.tmp.md
 drafts/posts/*.bak.md
 drafts/raw/*/data-update-*.json
+drafts/raw/*/*data*.md
+drafts/raw/*/*data*.json
 publish/final/*/glass-bridge-cpo.styled.md
+publish/final/*/.DS_Store
+publish/images/*/.DS_Store
+publish/images/*/charts/.DS_Store
 logs/*.jsonl
 logs/*.log
 logs/bibi-calls.jsonl
