@@ -152,7 +152,7 @@ a2_candidates:
 
 按下游 → 上游拆成 4 个层级(不是 8 层级,因为 4 层更适合光通信产业链):
 
-![产业链全景](images/02-4layers-landscape.png)
+![产业链全景](images/04-upstream-localization.png)
 
 | 层级 | 关键玩家 | A 股代表 | 卡位 | 国产化率 |
 |---|---|---|---|---|
@@ -267,7 +267,7 @@ a2_candidates:
 
 > **图 3**:光纤产业链各环节国产化率。光纤预制棒 **78%** 已突破,但 6N 级高纯石英砂(< 30%)+ 25G+ 光芯片(< 10%)仍是卡脖子。数据来源:行业研究报告 PDF / 前瞻产业研究院 / LightCounting 2026-05
 
-![图 4: 全球高纯石英砂产业链垄断格局(2025)](images/05-quartz-monopoly.png)
+![图 4: 全球高纯石英砂产业链垄断格局(2025)](images/07-summary-dashboard.png)
 
 > **图 4**:Sibelco + TQC 共持 Spruce Pine 矿(美国),控制全球 70-**90%** 高纯石英供应;石英股份是中国唯一规模量产 5N4+ 的企业。2024.9 飓风 Helene 让 Spruce Pine 停产暴露供应链风险。数据来源:Everstream Analytics / 中银证券 2026-06
 
