@@ -85,12 +85,12 @@ test = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/chenliitaz/content-factory"
-Repository = "https://github.com/chenliitaz/content-factory"
-Documentation = "https://chenliitaz.github.io/content-factory"
-"Bug Tracker" = "https://github.com/chenliitaz/content-factory/issues"
-Changelog = "https://github.com/chenliitaz/content-factory/blob/main/CHANGELOG.md"
-SOP = "https://github.com/chenliitaz/content-factory/blob/main/SOP.md"
+Homepage = "https://github.com/lululu811/content-factory"
+Repository = "https://github.com/lululu811/content-factory"
+Documentation = "https://lululu811.github.io/content-factory"
+"Bug Tracker" = "https://github.com/lululu811/content-factory/issues"
+Changelog = "https://github.com/lululu811/content-factory/blob/main/CHANGELOG.md"
+SOP = "https://github.com/lululu811/content-factory/blob/main/SOP.md"
 
 # ── CLI 入口 ──
 [project.scripts]

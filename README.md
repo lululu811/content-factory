@@ -86,7 +86,7 @@ content-factory/
 pip install content-factory
 
 # 或本地开发模式
-git clone https://github.com/chenliitaz/content-factory.git
+git clone https://github.com/lululu811/content-factory.git
 cd content-factory
 pip install -e ".[dev]"
 ```
@@ -209,7 +209,7 @@ $ bin/cf-new-stock.sh 603618.SH 石英股份
 
 ```bash
 # 设置 dev 环境
-git clone https://github.com/chenliitaz/content-factory.git
+git clone https://github.com/lululu811/content-factory.git
 cd content-factory
 pip install -e ".[dev]"
 pre-commit install
