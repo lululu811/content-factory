@@ -72,3 +72,14 @@ archives/*/*.md
 tracking/reports/
 tracking/archive/
 tracking/predictions/*.json
+
+# ============================================
+# 巨潮 cninfo 公告原文(2026/7/5 基础设施搭建)
+# 决策:PDF 大文件本地保留不传 / 解析后的 JSON 元数据 commit
+# ============================================
+# PDF 原文(每篇 100KB-5MB,可能数百篇)— 只忽略 .PDF / .pdf
+**/cninfo/pdfs/*.PDF
+**/cninfo/pdfs/*.pdf
+# JSON 元数据保留:anns / manifest / extracted / failed-*.json
+# (anns 文件名 `{date}.json` / extracted `{pdf_stem}.json` 不含 "data",
+#  不会被上方 `drafts/raw/*/*data*.json` 误伤)
