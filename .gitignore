@@ -1,64 +1,88 @@
-# OS
+# ── OS ──
 .DS_Store
 *.swp
 *.swo
 *~
+Thumbs.db
 
-# Python
+# ── Python ──
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
 *.egg-info/
-.venv/
+.installed.cfg
+*.egg
+MANIFEST
 .pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.tox/
+.nox/
+.cache
 .mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+ENV/
 
-# Node
+# ── Node / frontend ──
 node_modules/
 .vite/
 
-# Local secrets
+# ── Local secrets ──
 .env
 .env.local
 *.local
 
 # ============================================
-# content-factory 工程化清理(2026/6/29)
-# 决策:1=已发布文章不传 / 2=dbs 7 目录不传 /
-#      3=LICENSE=MIT 完全开源
-# 模式:本地保留,只从 .git 忽略(不物理删)
+# content-factory 开源边界(2026/7/5 准备开源)
+# 决策:
+#   1 = src/ templates/ bin/ scripts(已整合)/ docs/ examples/ tests/
+#       topics-pool.md / SOP.md / README.md / CHANGELOG / CONTRIBUTING /
+#       SECURITY / LICENSE / AGENTS / CLAUDE / SOURCE_OF_TRUTH
+#       → 全部开源
+#
+#   2 = drafts/ publish/ tracking/ logs/ reports/ archives/
+#       00-07 dbs 旧系统 / serenity-skill
+#       → 本地保留,只从 .git 忽略(不物理删)
+#
+#   3 = 公告原文 PDF(每篇 100KB-5MB,可能数百篇)
+#       → drafts/raw/*/cninfo/pdfs/ 忽略
+#       → JSON 元数据 commit
 # ============================================
 
-# 1. 临时 / 中间产物(自动生成,无开源价值)
+# ── Private data(本地保留)──
+drafts/posts/
 drafts/candidates/
 drafts/outlines/
+drafts/raw/
 drafts/research/
-drafts/raw/demo/
-drafts/raw/lip-bu-tan-no-priors/
-drafts/posts/*.styled.md
-drafts/posts/*.tmp.md
-drafts/posts/*.bak.md
-drafts/raw/*/data-update-*.json
-drafts/raw/*/*data*.md
-drafts/raw/*/*data*.json
-publish/final/*/glass-bridge-cpo.styled.md
-publish/final/*/.DS_Store
-publish/images/*/.DS_Store
-publish/images/*/charts/.DS_Store
-logs/*.jsonl
-logs/*.log
-logs/bibi-calls.jsonl
-logs/failed-channels.jsonl
-reports/*.md
+publish/
+tracking/
+logs/
+reports/
+archives/
+serenity-skill/
 
-# 2. 已发布文章(drafts/posts/ 全部)—— 个人版权,本地保留
-drafts/posts/*.md
-
-# 3. archives 已发布归档(本地保留,archives/.gitkeep 自身保留 tracked)
-archives/*/*.md
-
-# 4. dbs-content-system 7 目录(本地保留,不开源)
-#    早期试错产物,实际工作流只用 SOP.md
+# ── Legacy dbs-content-system 7 目录(早期试错,2026/6/29 已 ignore)──
 00-规则与索引/
 01-原始素材区/
 02-内容单元库/
@@ -68,18 +92,30 @@ archives/*/*.md
 06-选题装配/
 07-脚本与工具/
 
-# 5. 个人追踪数据(本地保留,不开源)
-tracking/reports/
-tracking/archive/
-tracking/predictions/*.json
-
-# ============================================
-# 巨潮 cninfo 公告原文(2026/7/5 基础设施搭建)
-# 决策:PDF 大文件本地保留不传 / 解析后的 JSON 元数据 commit
-# ============================================
-# PDF 原文(每篇 100KB-5MB,可能数百篇)— 只忽略 .PDF / .pdf
+# ── PDF 大文件(只忽略 PDF,JSON 元数据 commit)──
 **/cninfo/pdfs/*.PDF
 **/cninfo/pdfs/*.pdf
-# JSON 元数据保留:anns / manifest / extracted / failed-*.json
-# (anns 文件名 `{date}.json` / extracted `{pdf_stem}.json` 不含 "data",
-#  不会被上方 `drafts/raw/*/*data*.json` 误伤)
+
+# ── 项目工程化产物 ──
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+htmlcov/
+.coverage
+dist/
+build/
+*.egg-info/
+
+# ── Local config overrides ──
+.env.local
+.env.*.local
+
+# ── Editor / IDE ──
+.idea/
+.vscode/
+*.swp
+*~
+
+# ── Generated docs ──
+/site/
+.venv/

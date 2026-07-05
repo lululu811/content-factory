@@ -1,0 +1,810 @@
+#!/usr/bin/env python3
+"""
+scripts/compliance-check.py
+发布前合规检查（自动化勾选 16 项 + PASS/FAIL）
+
+用法：
+  python3 compliance-check.py <slug>              # 检查单篇
+  python3 compliance-check.py --all               # 检查 drafts/posts/ 下所有草稿
+  python3 compliance-check.py <slug> --strict     # 任何 FAIL 直接 exit 1
+
+检查清单来源：templates/compliance/checklist.md（v3 · 16 项 · 唯一权威）
+本脚本必须与 checklist.md 保持一致；如修改清单，请同步修改本脚本。
+
+设计原则：
+  - FAIL = 必须修复（不能发布）
+  - WARN = 建议修复（可发布但有风险）
+  - PASS = 已通过
+"""
+
+import argparse
+import json
+import re
+import sys
+from datetime import datetime, date, timedelta
+from pathlib import Path
+from typing import List, Tuple, Optional
+
+# 路径常量
+CONTENT_FACTORY = Path('/Users/chenlei/content-factory')
+DRAFTS_POSTS = CONTENT_FACTORY / 'drafts' / 'posts'
+PUBLISH_FINAL = CONTENT_FACTORY / 'publish' / 'final'
+TRACKING_PREDS = CONTENT_FACTORY / 'tracking' / 'predictions'
+CHECKLIST = CONTENT_FACTORY / 'templates' / 'compliance' / 'checklist.md'
+
+# 高风险词（仅允许在"免责声明反向表达"中出现）
+HIGH_RISK_WORDS = ['目标价', '推荐', '保证', '加仓', '稳赚', '必涨', '必跌', '重仓', '满仓']
+
+# 强证据 / 时间窗 / 升降级信号阈值
+MIN_COMPANIES_TOTAL = 20
+MIN_PER_CATEGORY = {
+    'Controls': 2,
+    'Supplies': 4,
+    'Benefits': 4,
+    'Weak': 3,
+    'Story': 2,
+}
+MIN_TOP7 = 7
+MIN_UPGRADE_SIGNALS = 3
+MIN_DOWNGRADE_SIGNALS = 3
+MIN_CONSENSUS_DIRECTIONS = 3  # 反共识方向 ≥ 3 类
+MIN_IMAGES = 5
+MAX_TITLE_CHARS = 30
+
+# 股票代码正则（A 股 / 港股 / 台股 / 美股）
+TICKER_PATTERNS = [
+    r'\b\d{6}\.(?:SH|SZ)\b',          # A 股
+    r'\b\d{4,5}\.HK\b',                # 港股
+    r'\b\d{4}\.TW\b',                  # 台股
+    r'\b[A-Z]{2,5}\.US\b',             # 美股
+    r'\b\d{6}\.SH\b|\b\d{6}\.SZ\b',   # A 股(无小数点)
+]
+
+
+def find_article(slug: str) -> Optional[Path]:
+    """找文章路径（优先 final/,fallback drafts/）"""
+    final = PUBLISH_FINAL / slug / f'{slug}.md'
+    if final.exists():
+        return final
+    draft = DRAFTS_POSTS / f'{slug}.md'
+    if draft.exists():
+        return draft
+    return None
+
+
+def read_article(path: Path) -> str:
+    return path.read_text(encoding='utf-8')
+
+
+# ─────────────────────────────────────────────
+# 15 项检查函数
+# ─────────────────────────────────────────────
+
+def check_1_title(content: str, slug: str) -> Tuple[str, str]:
+    """A1. 标题 ≤ 30 字 + 含反共识钩子"""
+    m = re.search(r'^# (.+)$', content, re.MULTILINE)
+    if not m:
+        return 'FAIL', '找不到一级标题'
+    title = m.group(1).strip()
+    if len(title) > MAX_TITLE_CHARS:
+        return 'FAIL', f'标题 {len(title)} 字,超过 30 字限制: {title!r}'
+    # 反共识钩子关键词(任一即可)
+    hooks = ['反共识', '真实', '未必', '不是', '不在', '别再', '误区', '陷阱', '意外', '错位',
+             '低估', '高估', '误读', '错判', '假的', '真的', '真相', '残酷', '清醒']
+    if not any(h in title for h in hooks):
+        return 'WARN', f'标题缺少反共识钩子关键词(建议加: {hooks[:3]})'
+    return 'PASS', f'标题 {len(title)} 字 + 含反共识钩子'
+
+
+def check_2_companies_total(content: str, slug: str) -> Tuple[str, str]:
+    """A2. 候选公司 ≥ 20 个,5 分类齐全"""
+    # 找"公司 5 分类"章节(章节号可能是 七/八/九/十/八/9 等任意)
+    m = re.search(r'^##[^\n]*公司\s*5\s*分类[^\n]*\n(.*?)(?=^##\s)', content, re.DOTALL | re.MULTILINE)
+    if not m:
+        # 备选:任何标题含"5 分类"的段落
+        m = re.search(r'^##[^\n]*5\s*分类[^\n]*\n(.*?)(?=^##\s)', content, re.DOTALL | re.MULTILINE)
+    if not m:
+        return 'FAIL', '找不到"公司 5 分类"章节'
+    section = m.group(1)
+
+    # 统计所有形如 **公司名** 的提及
+    companies = re.findall(r'\*\*([^*\d]+?)\*\*', section)
+    # 过滤掉标题、章节名、证据等级说明
+    companies = [c for c in companies if c not in
+                 {'强证据', '中证据', '弱证据', '强', '中', '弱',
+                  'Controls', 'Supplies', 'Benefits', 'Weak control',
+                  'Mainly has a story', '稀缺层'}]
+    unique = set(c.strip() for c in companies if len(c.strip()) > 1)
+
+    if len(unique) < MIN_COMPANIES_TOTAL:
+        return 'FAIL', f'候选公司 {len(unique)} 个,需 ≥ {MIN_COMPANIES_TOTAL}'
+    return 'PASS', f'候选公司 {len(unique)} 个(≥ {MIN_COMPANIES_TOTAL})'
+
+
+def check_3_weak_story_have_tickers(content: str, slug: str) -> Tuple[str, str]:
+    """A3. 9.4 Weak / 9.5 Story 两类必须有具体股票代码"""
+    # 找 7.4 / 9.4 / 8.4 / "Has weak control" 节
+    weak_m = re.search(
+        r'(?:###?\s*(?:7\.4|8\.4|9\.4|Has weak control))[^\n]*\n(.*?)(?=\n###?\s|\n##\s|\Z)',
+        content, re.DOTALL | re.MULTILINE)
+    story_m = re.search(
+        r'(?:###?\s*(?:7\.5|8\.5|9\.5|Mainly has a story))[^\n]*\n(.*?)(?=\n###?\s|\n##\s|\Z)',
+        content, re.DOTALL | re.MULTILINE)
+
+    issues = []
+    for label, mm in [('Weak', weak_m), ('Story', story_m)]:
+        if not mm:
+            issues.append(f'{label} 节缺失')
+            continue
+        section = mm.group(1)
+        # 找任何 ticker pattern
+        has_ticker = any(re.search(p, section) for p in TICKER_PATTERNS)
+        # 找 `...` 占位
+        has_placeholder = '...' in section
+        # 找具体公司名(**xxx** 形式,且 2 字以上)
+        company_mentions = re.findall(r'\*\*([^*\n]{2,15})\*\*', section)
+        company_mentions = [c for c in company_mentions if not c.startswith(('强', '中', '弱'))]
+
+        if has_placeholder:
+            issues.append(f'{label} 节有 `...` 占位')
+        if not has_ticker and not company_mentions:
+            issues.append(f'{label} 节既无 ticker 也无具体公司名')
+
+    if issues:
+        return 'FAIL', '; '.join(issues)
+    return 'PASS', 'Weak + Story 两节有具体公司名 / ticker'
+
+
+def check_4_top7(content: str, slug: str) -> Tuple[str, str]:
+    """A4. Top 7 完整 5 要素"""
+    # 找 "优先研究 Top 7" / "Top 7" / "🥇 #1" 起的章节
+    m = re.search(
+        r'(?:##[^\n]*(?:Top\s*7|优先研究)[^\n]*\n)(.*?)(?=\n##\s|\Z)',
+        content, re.DOTALL)
+    if not m:
+        return 'FAIL', '找不到 "优先研究 Top 7" 章节'
+    section = m.group(1)
+
+    # 5 要素关键词
+    required_keys = ['卡住的环节', '产业链位置', '排序原因', '证据', '主要风险']
+    missing = [k for k in required_keys if k not in section]
+
+    if missing:
+        return 'FAIL', f'Top 7 缺 5 要素: {missing}'
+
+    # 数候选数(🥇 #N / 🥈 #N / 🥉 #N / 纯 #N 都要匹配)
+    candidates = re.findall(r'(?:[🥇🥈🥉]\s*)?#\s*(\d+)\b', section)
+    if candidates:
+        n = max(int(c) for c in candidates)
+        if n < MIN_TOP7:
+            return 'WARN', f'Top 候选数 {n} < 7'
+    return 'PASS', 'Top 7 完整 5 要素齐全'
+
+
+def check_5_consensus(content: str, slug: str) -> Tuple[str, str]:
+    """A5. 反共识方向 ≥ 3 类"""
+    m = re.search(
+        r'##[^\n]*反共识[^\n]*\n(.*?)(?=\n##\s|\Z)',
+        content, re.DOTALL)
+    if not m:
+        return 'FAIL', '找不到"反共识判断"章节'
+    section = m.group(1)
+    # 数 🔻 段(每个是一个反共识方向)
+    n = len(re.findall(r'🔻', section))
+    if n < MIN_CONSENSUS_DIRECTIONS:
+        return 'FAIL', f'反共识方向 {n} 类,需 ≥ {MIN_CONSENSUS_DIRECTIONS}'
+    return 'PASS', f'反共识方向 {n} 类(≥ {MIN_CONSENSUS_DIRECTIONS})'
+
+
+def check_6_images(content: str, slug: str) -> Tuple[str, str]:
+    """A6. 配图 ≥ 5 张"""
+    images = re.findall(r'!\[([^\]]*)\]\([^)]+\)', content)
+    n = len(images)
+    if n < MIN_IMAGES:
+        return 'FAIL', f'配图 {n} 张,需 ≥ {MIN_IMAGES}'
+    return 'PASS', f'配图 {n} 张(≥ {MIN_IMAGES})'
+
+
+def check_7_data_freshness(content: str, slug: str) -> Tuple[str, str]:
+    """A7. 数据时效 2026 H1 最新(每条数据应标日期)"""
+    # 找形如 "2026 H1" / "2026-XX" / "2026/Q1" 等
+    h1_2026 = len(re.findall(r'2026\s*H1', content))
+    date_2026 = len(re.findall(r'2026[/\-]\d{1,2}', content))
+    total = h1_2026 + date_2026
+    if total < 3:
+        return 'WARN', f'2026 H1 / 日期标注 {total} 处,可能数据陈旧'
+    return 'PASS', f'2026 H1 数据标注 {total} 处'
+
+
+def check_8_disclaimer(content: str, slug: str) -> Tuple[str, str]:
+    """B8. 免责声明(中版本)"""
+    keywords = ['不构成投资建议', '不构成推荐', '研究案例', '免责声明']
+    found = [k for k in keywords if k in content]
+    if '免责声明' not in content:
+        return 'FAIL', '找不到"免责声明"标题'
+    if '研究案例' not in content and '不构成推荐' not in content:
+        return 'WARN', f'免责声明已加,但缺"研究案例 / 不构成推荐"标注。命中: {found}'
+    return 'PASS', f'免责声明已加(含 {",".join(found)})'
+
+
+def check_9_evidence_levels(content: str, slug: str) -> Tuple[str, str]:
+    """B9. 证据等级 🟢🟡🔴 齐全"""
+    has_green = '🟢' in content
+    has_yellow = '🟡' in content
+    has_red = '🔴' in content
+    missing = []
+    if not has_green:
+        missing.append('🟢')
+    if not has_yellow:
+        missing.append('🟡')
+    if not has_red:
+        missing.append('🔴')
+    if missing:
+        return 'WARN', f'证据等级缺: {" ".join(missing)}(强结论必须 🟢)'
+    return 'PASS', '🟢🟡🔴 三档齐全'
+
+
+def check_10_sources(content: str, slug: str) -> Tuple[str, str]:
+    """B10. 强结论有可查来源"""
+    # 找所有 🟢 后跟来源标注的行
+    green_with_source = re.findall(r'🟢[^\n]*\[?[🟢L\d\d?]?[^\n]*?(?:报告|公告|财报|海关|监管|招股书|问询函|互动易|海关数据|ID|号)', content)
+    n = len(green_with_source)
+    if n < 3:
+        return 'WARN', f'🟢 强证据来源标注 {n} 处,可能不够详细'
+    return 'PASS', f'🟢 强证据来源标注 {n} 处'
+
+
+def check_11_high_risk_words(content: str, slug: str) -> Tuple[str, str]:
+    """B11. 高风险词 0 处误用"""
+    issues = []
+    for word in HIGH_RISK_WORDS:
+        # 找出所有出现位置
+        positions = [m.start() for m in re.finditer(re.escape(word), content)]
+        for pos in positions:
+            # 检查上下文 80 字内是否有免责声明反向表达
+            ctx = content[max(0, pos - 80):min(len(content), pos + 80)]
+            safe_patterns = ['不构成', '不推荐', '不代表', '非', '请勿', '不代表', '仅为', '并非', '避免']
+            if not any(sp in ctx for sp in safe_patterns):
+                issues.append(f'"{word}" @ 位置 {pos},上下文 80 字内无反向表达')
+
+    if issues:
+        return 'FAIL', '; '.join(issues[:3]) + (f' ... 共 {len(issues)} 处' if len(issues) > 3 else '')
+    return 'PASS', f'高风险词 0 处误用(检查 {len(HIGH_RISK_WORDS)} 个)'
+
+
+def check_12_time_window(content: str, slug: str) -> Tuple[str, str]:
+    """B12. 短期判断有时间窗口"""
+    keywords = ['6 个月', '12 个月', '3-6 个月', '6-12 个月', '3 个月', '12 个月内',
+                '6 个月内', '季度', '2026 H1', '2026 H2', '2026/Q1', '2026/Q2', '2026/Q3',
+                '未来 6 个月', '未来 12 个月', '窗口']
+    found = [k for k in keywords if k in content]
+    if len(found) < 2:
+        return 'WARN', f'时间窗口标注 {len(found)} 处(< 2),短期判断需更明确窗口'
+    return 'PASS', f'时间窗口标注 {len(found)} 处'
+
+
+def check_13_signals(content: str, slug: str) -> Tuple[str, str]:
+    """B13. 升降级信号齐全(各 ≥ 3)"""
+    up_m = re.search(
+        r'(?:###?\s*(?:升级信号|α 兑现信号|alpha 兑现))[^\n]*\n(.*?)(?=\n###?\s|\n##\s|\Z)',
+        content, re.DOTALL | re.MULTILINE)
+    down_m = re.search(
+        r'(?:###?\s*(?:降级信号|判断需修正))[^\n]*\n(.*?)(?=\n###?\s|\n##\s|\Z)',
+        content, re.DOTALL | re.MULTILINE)
+
+    up_count = len(re.findall(r'🟢', up_m.group(1))) if up_m else 0
+    down_count = len(re.findall(r'🔴', down_m.group(1))) if down_m else 0
+
+    issues = []
+    if not up_m:
+        issues.append(f'缺"升级信号"段落')
+    elif up_count < MIN_UPGRADE_SIGNALS:
+        issues.append(f'升级信号 {up_count} 条,< {MIN_UPGRADE_SIGNALS}')
+    if not down_m:
+        issues.append(f'缺"降级信号"段落')
+    elif down_count < MIN_DOWNGRADE_SIGNALS:
+        issues.append(f'降级信号 {down_count} 条,< {MIN_DOWNGRADE_SIGNALS}')
+
+    if issues:
+        return 'FAIL', '; '.join(issues)
+    return 'PASS', f'升级 {up_count} 条 + 降级 {down_count} 条'
+
+
+def check_14_tracking(content: str, slug: str, strict_path: bool = False, pre_publish: bool = False) -> Tuple[str, str]:
+    """B14. tracking/predictions/{slug}.json 已写入(发布后)"""
+    pred_path = TRACKING_PREDS / f'{slug}.json'
+    if not pred_path.exists():
+        if pre_publish:
+            return 'WARN', f'tracking/predictions/{slug}.json 不存在（这是发布前校验，发布脚本会自动创建它）'
+        if strict_path:
+            return 'FAIL', f'tracking/predictions/{slug}.json 不存在。发布后请跑: python3 scripts/tracking-record.py add {slug}'
+        return 'WARN', f'tracking/predictions/{slug}.json 不存在(发布后会自动跑)'
+
+    data = json.loads(pred_path.read_text(encoding='utf-8'))
+    n = len(data.get('predictions', []))
+    if n == 0:
+        return 'WARN', 'tracking 记录为空(可能文章缺升级/降级信号段落)'
+    return 'PASS', f'tracking 已写入({n} 条预测)'
+
+
+def check_15_quote_citations(content: str, slug: str) -> Tuple[str, str]:
+    """C15. 访谈类文章必须有引用块(≥ 10 个)+ 中英对照标识(仅对带 interview: frontmatter 的文章启用)"""
+    # 仅对带 interview: frontmatter 的文章启用
+    if 'interview:' not in content[:1000]:
+        return 'PASS', '非访谈类文章,跳过 A15'
+
+    en_blocks = len(re.findall(r'🇺🇸 \*\*\[EN\]\*\*', content))
+    cn_blocks = len(re.findall(r'🇨🇳 \*\*\[CN\]\*\*', content))
+    citation_lines = len(re.findall(r'^\s*> \*\*访谈引用', content, re.MULTILINE))
+
+    issues = []
+    if citation_lines < 10:
+        issues.append(f'引用块仅 {citation_lines} 个,需 ≥ 10 个')
+    if en_blocks != cn_blocks:
+        issues.append(f'🇺🇸 EN {en_blocks} 个 vs 🇨🇳 CN {cn_blocks} 个,不平衡')
+    if en_blocks < 5 or cn_blocks < 5:
+        issues.append(f'中英对照标识不足(EN {en_blocks} / CN {cn_blocks},各需 ≥ 5)')
+
+    if issues:
+        return 'FAIL', '; '.join(issues)
+    return 'PASS', f'引用块 {citation_lines} 个 + 中英对照 EN/CN 各 {en_blocks}/{cn_blocks}'
+
+
+def check_16_data_verified(content: str, slug: str) -> Tuple[str, str]:
+    """A16. 数据时效校验（必填 frontmatter data_verified 字段 + 时间新鲜度）
+
+    强约束（FAIL if 缺）：
+    - frontmatter data_verified.verified_at 必填，且距今 ≤ 30 天
+    - frontmatter data_verified.verified_sources 至少 1 个 URL
+    - frontmatter data_verified.verified_companies 至少 1 个条目
+
+    中约束（WARN if 缺）：
+    - 正文 5 分类公司表里至少有 1 处 [✅ verified YYYY-MM-DD] 标记
+
+    背景：2026/6/24 E 篇被打脸 —— 把"摩尔线程"写成"待上市"，沐曦/壁仞代码错位。
+    强制 web_search 核验后记录到 frontmatter，下次 publish 前 publish.sh 会检查 A16。
+    """
+    # 仅对 v2/v3 模板启用（带 frontmatter --- 块的文章）
+    fm_match = re.match(r'---\n(.*?)\n---', content, re.DOTALL)
+    if not fm_match:
+        return 'WARN', '未检测到 frontmatter 块（v2/v3 模板必填）'
+
+    fm_text = fm_match.group(1)
+
+    # 提取 data_verified 段（YAML 缩进：data_verified 下面所有缩进行，直到遇到非缩进行或文件末尾）
+    dv_match = re.search(
+        r'data_verified:\n(.*?)(?=\n\S|\Z)',
+        fm_text,
+        re.DOTALL,
+    )
+    if not dv_match:
+        return 'FAIL', 'frontmatter 缺 data_verified 段（必须包含 verified_at + verified_sources + verified_companies）'
+
+    dv_text = dv_match.group(1)
+
+    issues = []
+
+    # 检查 verified_at
+    at_match = re.search(r'verified_at:\s*["\']?(\d{4}-\d{2}-\d{2})', dv_text)
+    if not at_match:
+        issues.append('verified_at 缺失或非 ISO 日期')
+        verified_age_days = None
+    else:
+        try:
+            verified_date = datetime.strptime(at_match.group(1), '%Y-%m-%d').date()
+            verified_age_days = (date.today() - verified_date).days
+            if verified_age_days > 30:
+                issues.append(
+                    f'verified_at 已过期 {verified_age_days} 天（需 ≤ 30 天，建议发布前 24 小时内重新核验）'
+                )
+        except ValueError:
+            issues.append(f'verified_at 解析失败: {at_match.group(1)}')
+
+    # 检查 verified_sources
+    sources_match = re.search(r'verified_sources:\s*\n((?:[ \t]+-\s+.+\n)+)', dv_text)
+    if not sources_match:
+        issues.append('verified_sources 缺失或为空（至少 1 个 URL）')
+    else:
+        sources_count = len(re.findall(r'-\s+["\']?https?://', sources_match.group(1)))
+        if sources_count == 0:
+            issues.append('verified_sources 没有 http(s) URL（至少 1 个有效 URL）')
+
+    # 检查 verified_companies
+    companies_match = re.search(r'verified_companies:\s*\n((?:[ \t]+-\s+.+\n)+)', dv_text)
+    if not companies_match:
+        issues.append('verified_companies 缺失或为空（至少 1 个公司条目）')
+    else:
+        companies_count = len(re.findall(r'-\s+["\']?[^\n]+', companies_match.group(1)))
+        if companies_count == 0:
+            issues.append('verified_companies 没有有效条目')
+
+    # 中约束：正文表格里的 [✅ verified YYYY-MM-DD] 标记
+    verified_marks = re.findall(r'✅\s*verified\s+\d{4}-\d{2}-\d{2}', content)
+    if not verified_marks:
+        issues.append(
+            '建议在正文 5 分类表里加 [✅ verified YYYY-MM-DD] 标记（目前 0 处）'
+        )
+
+    if issues:
+        # 如果有强约束问题 → FAIL，否则 WARN
+        hard_issues = [i for i in issues if 'verified_at 已过期' in i or '缺失' in i or '解析失败' in i or '没有' in i]
+        status = 'FAIL' if hard_issues else 'WARN'
+        return status, '; '.join(issues[:3]) + (f' ... 共 {len(issues)} 项' if len(issues) > 3 else '')
+
+    extra = f' 已核验 {len(re.findall(r"-\s+", companies_match.group(1)))} 家公司'
+    return 'PASS', f'verified_at {at_match.group(1)}（{verified_age_days} 天前）+ {verified_marks} 处正文标记{extra}'
+
+
+def check_17_research_reports(content: str, slug: str) -> Tuple[str, str]:
+    """A17. research-reports /query(frontmatter research_reports 字段,2026/6/28 软化为软提示)
+
+    软约束(WARN if 缺,不再 FAIL):
+    - frontmatter research_reports.queried_at 必填(留作溯源,不再 ≤ 30 天硬约束)
+    - frontmatter research_reports.linked_concepts 至少 1 个条目(除非 skipped_reason 写明)
+
+    背景:6/28 用户洞察——知识库二次总结丢失精度 → A17 软化,
+    research-reports /query 降级为概念索引(详见 SOP 4.3.6)。
+    ZsxqCrawler 原始导出成为新的硬约束(详见 A17b)。
+    """
+    fm_match = re.match(r'---\n(.*?)\n---', content, re.DOTALL)
+    if not fm_match:
+        return 'WARN', '未检测到 frontmatter 块（v2/v3 模板必填）'
+
+    fm_text = fm_match.group(1)
+
+    # 提取 research_reports 段
+    rr_match = re.search(
+        r'research_reports:\n(.*?)(?=\n\S|\Z)',
+        fm_text,
+        re.DOTALL,
+    )
+    if not rr_match:
+        return 'FAIL', 'frontmatter 缺 research_reports 段（必须包含 queried_at + linked_concepts 或 skipped_reason）'
+
+    rr_text = rr_match.group(1)
+    issues = []
+
+    # 检查 queried_at(软提示,只校验格式,不再检查 ≤ 30 天)
+    at_match = re.search(r'queried_at:\s*["\']?(\d{4}-\d{2}-\d{2})', rr_text)
+    if not at_match:
+        issues.append('queried_at 缺失或非 ISO 日期(软提示)')
+        queried_age_days = None
+    else:
+        try:
+            queried_date = datetime.strptime(at_match.group(1), '%Y-%m-%d').date()
+            queried_age_days = (date.today() - queried_date).days
+        except ValueError:
+            issues.append(f'queried_at 解析失败: {at_match.group(1)}(软提示)')
+
+    # 检查 skipped_reason(允许 0 命中但要写明)
+    skipped_match = re.search(r'skipped_reason:\s*["\']?([^\n]+)', rr_text)
+    skipped_reason = skipped_match.group(1).strip() if skipped_match else ''
+
+    # 检查 linked_concepts(数所有 `- name:` 行)
+    found_concepts_count = len(re.findall(r'-\s+name:', rr_text))
+
+    # 软约束:linked_concepts 为空 + 没写 skipped_reason → WARN
+    if found_concepts_count == 0 and not skipped_reason:
+        issues.append(
+            'linked_concepts 为空且 skipped_reason 未填写(软提示,建议补一项)'
+        )
+
+    # 软约束:正文里 [[概念名]] 双链
+    obsidian_links = re.findall(r'\[\[[^\]\n]+\]\]', content)
+    if not obsidian_links:
+        issues.append(
+            '建议在正文里加 [[概念名]] 双链格式(research-reports Obsidian 链接)'
+        )
+
+    # A17 全部 WARN,不 FAIL(6/28 软化)
+    if issues:
+        return 'WARN', '; '.join(issues[:3]) + (f' ... 共 {len(issues)} 项' if len(issues) > 3 else '')
+
+    return 'PASS', (
+        f'queried_at {at_match.group(1)}（{queried_age_days} 天前）+ {found_concepts_count} 个概念链接'
+        f'+ {len(obsidian_links)} 处正文双链'
+    )
+
+
+
+
+def check_17b_zsxq_crawler(content: str, slug: str) -> Tuple[str, str]:
+    """A17b. ZsxqCrawler 原始导出必跑(frontmatter zsxq_crawler 字段,2026/6/28 新增硬约束)
+
+    强约束(FAIL if 缺):
+    - frontmatter zsxq_crawler.queried_at 必填,且距今 ≤ 30 天
+    - frontmatter zsxq_crawler.cited_sections ≥ 1(除非 skipped_reason 写明)
+    - frontmatter zsxq_crawler.citations ≥ 1 项(除非 skipped_reason 写明)
+
+    中约束(WARN if 缺):
+    - 正文里 [来源:ZsxqCrawler ...] 引用格式 ≥ 3 处
+
+    背景:6/28 用户洞察——知识库二次总结丢失精度 → ZsxqCrawler 原始导出
+    (2895 条话题,完整保留作者/日期/ID/点赞)成为精度最高源,升 P0。
+    每篇深度文必须基于至少 1 条原始观点,否则属于"凭印象写"(详见 SOP 4.2.1 + 4.3.7)。
+    """
+    fm_match = re.match(r'---\n(.*?)\n---', content, re.DOTALL)
+    if not fm_match:
+        return 'FAIL', '未检测到 frontmatter 块(v2/v3 模板必填)'
+
+    fm_text = fm_match.group(1)
+
+    # 提取 zsxq_crawler 段
+    zc_match = re.search(
+        r'zsxq_crawler:\n(.*?)(?=\n\S|\Z)',
+        fm_text,
+        re.DOTALL,
+    )
+    if not zc_match:
+        return 'FAIL', 'frontmatter 缺 zsxq_crawler 段(必须包含 queried_at + cited_sections + citations 或 skipped_reason)'
+
+    zc_text = zc_match.group(1)
+    issues = []
+
+    # 检查 queried_at(硬约束 ≤ 30 天)
+    at_match = re.search(r'queried_at:\s*["\']?(\d{4}-\d{2}-\d{2})', zc_text)
+    if not at_match:
+        issues.append('queried_at 缺失或非 ISO 日期(硬 FAIL)')
+        queried_age_days = None
+    else:
+        try:
+            queried_date = datetime.strptime(at_match.group(1), '%Y-%m-%d').date()
+            queried_age_days = (date.today() - queried_date).days
+            if queried_age_days > 30:
+                issues.append(
+                    f'queried_at 已过期 {queried_age_days} 天(硬 FAIL,需 ≤ 30 天,建议发布前 24h 重新扫)'
+                )
+        except ValueError:
+            issues.append(f'queried_at 解析失败: {at_match.group(1)}(硬 FAIL)')
+
+    # 检查 skipped_reason(允许 0 命中但要写明)
+    skipped_match = re.search(r'skipped_reason:\s*["\']?([^\n]+)', zc_text)
+    skipped_reason = skipped_match.group(1).strip() if skipped_match else ''
+
+    # 硬约束:zsxq_crawler.cited_sections ≥ 1(除非 skipped_reason)
+    cs_match = re.search(r'cited_sections:\s*(\d+)', zc_text)
+    cited_sections = int(cs_match.group(1)) if cs_match else 0
+    if cited_sections < 1 and not skipped_reason:
+        issues.append(
+            f'cited_sections = {cited_sections}(硬 FAIL,需 ≥ 1,除非 skipped_reason 写明 0 命中原因)'
+        )
+
+    # 硬约束:zsxq_crawler.citations ≥ 1 项
+    citations_count = len(re.findall(r'-\s+file:', zc_text))
+    if citations_count < 1 and not skipped_reason:
+        issues.append(
+            f'citations = {citations_count} 项(硬 FAIL,需 ≥ 1 项,除非 skipped_reason 写明)'
+        )
+
+    # 软约束:正文里 [来源:ZsxqCrawler ...] 引用格式
+    zsxq_citations_in_body = re.findall(r'\[来源:ZsxqCrawler[^\]]+\]', content)
+    if len(zsxq_citations_in_body) < 3:
+        issues.append(
+            f'正文里 [来源:ZsxqCrawler ...] 引用 = {len(zsxq_citations_in_body)} 处(软 WARN,建议 ≥ 3 处)'
+        )
+
+    if issues:
+        # 区分硬/软:正文引用数 = 0 是软 WARN(只 WARN,非 FAIL)
+        # 硬问题:queried_at 过期/缺失 + cited_sections/citations = 0(且无 skipped_reason)
+        hard_keywords = ['硬 FAIL', '缺失', '解析失败', '已过期', 'cited_sections = 0', 'citations = 0 项']
+        hard_issues = [i for i in issues if any(k in i for k in hard_keywords)]
+        status = 'FAIL' if hard_issues else 'WARN'
+        return status, '; '.join(issues[:3]) + (f' ... 共 {len(issues)} 项' if len(issues) > 3 else '')
+
+    return 'PASS', (
+        f'queried_at {at_match.group(1)}({queried_age_days} 天前) + cited_sections {cited_sections} + citations {citations_count} 项'
+        f' + 正文 {len(zsxq_citations_in_body)} 处引用'
+    )
+
+
+# ─────────────────────────────────────────────
+# 主入口
+# ─────────────────────────────────────────────
+
+CHECKS = [
+    ('A1', '标题 ≤ 30 字 + 反共识钩子', check_1_title),
+    ('A2', '候选公司 ≥ 20', check_2_companies_total),
+    ('A3', '9.4/9.5 必须有具体代码', check_3_weak_story_have_tickers),
+    ('A4', 'Top 7 完整 5 要素', check_4_top7),
+    ('A5', '反共识方向 ≥ 3', check_5_consensus),
+    ('A6', '配图 ≥ 5 张', check_6_images),
+    ('A7', '数据时效 2026 H1', check_7_data_freshness),
+    ('B8', '免责声明(中版本)', check_8_disclaimer),
+    ('B9', '证据等级 🟢🟡🔴 齐全', check_9_evidence_levels),
+    ('B10', '强结论有可查来源', check_10_sources),
+    ('B11', '高风险词 0 误用', check_11_high_risk_words),
+    ('B12', '短期判断时间窗口', check_12_time_window),
+    ('B13', '升降级信号齐全', check_13_signals),
+    ('B14', 'tracking 记录已写入', check_14_tracking),
+    ('C15', '访谈引用块 + 中英对照(仅 interview: 启用)', check_15_quote_citations),
+    ('A16', '数据时效校验（frontmatter data_verified + 时间新鲜度）', check_16_data_verified),
+    ('A17', 'research-reports /query 软提示(2026/6/28 软化)', check_17_research_reports),
+    ('A17b', 'ZsxqCrawler 原始导出必跑(frontmatter zsxq_crawler + cited_sections≥1 硬约束)', check_17b_zsxq_crawler),
+]
+
+
+def run_checks(slug: str, content: str, strict: bool = False, pre_publish: bool = False) -> List[Tuple[str, str, str, str]]:
+    """对单篇文章跑 15 项检查。返回 [(编号, 名称, 状态, 说明), ...]"""
+    results = []
+    for code, name, fn in CHECKS:
+        try:
+            if fn == check_14_tracking:
+                status, msg = fn(content, slug, strict_path=strict, pre_publish=pre_publish)
+            else:
+                status, msg = fn(content, slug)
+        except Exception as e:
+            status, msg = 'ERROR', f'检查器异常: {type(e).__name__}: {e}'
+        results.append((code, name, status, msg))
+    return results
+
+
+def print_report(slug: str, results: List[Tuple[str, str, str, str]]) -> bool:
+    """打印报告。返回 True = 全 PASS / WARN(可发布),False = 有 FAIL(不可发布)"""
+    fail = sum(1 for _, _, s, _ in results if s == 'FAIL')
+    warn = sum(1 for _, _, s, _ in results if s == 'WARN')
+    ok = sum(1 for _, _, s, _ in results if s == 'PASS')
+    err = sum(1 for _, _, s, _ in results if s == 'ERROR')
+
+    print('═' * 70)
+    print(f'  合规检查报告 · {slug}')
+    print('═' * 70)
+    for code, name, status, msg in results:
+        icon = {'PASS': '✅', 'WARN': '⚠️ ', 'FAIL': '❌', 'ERROR': '💥'}[status]
+        print(f'  {icon} [{code}] {name}')
+        print(f'         {msg}')
+    print('═' * 70)
+    print(f'  汇总: ✅ {ok} | ⚠️  {warn} | ❌ {fail} | 💥 {err}')
+    print('═' * 70)
+
+    if fail > 0 or err > 0:
+        print(f'  🚫 **不可发布**:有 {fail} 项 FAIL + {err} 项 ERROR,需先修复。')
+        return False
+    if warn > 0:
+        print(f'  ⚠️  **可发布但有风险**:有 {warn} 项 WARN,建议尽快修复。')
+    else:
+        print(f'  🎉 **可发布**:16/16 全部 PASS。')
+    return True
+
+
+def check_one(slug: str, strict: bool = False, pre_publish: bool = False) -> bool:
+    path = find_article(slug)
+    if not path:
+        print(f'❌ 找不到文章: drafts/posts/{slug}.md 或 publish/final/{slug}/{slug}.md')
+        return False
+    content = read_article(path)
+    results = run_checks(slug, content, strict=strict, pre_publish=pre_publish)
+    return print_report(slug, results)
+
+
+def check_all(strict: bool = False, pre_publish: bool = False) -> int:
+    """检查 drafts/posts/ 下所有 .md 文件。返回 PASS 数。"""
+    drafts = sorted(DRAFTS_POSTS.glob('*.md'))
+    if not drafts:
+        print('⚠️  drafts/posts/ 下没有 .md 文件')
+        return 0
+    passed = 0
+    for draft in drafts:
+        slug = draft.stem
+        content = draft.read_text(encoding='utf-8')
+        results = run_checks(slug, content, strict=strict, pre_publish=pre_publish)
+        if print_report(slug, results):
+            passed += 1
+        print()
+    print(f'═ 总计:{passed}/{len(drafts)} 篇可发布 ═')
+    return passed
+
+
+def main():
+    parser = argparse.ArgumentParser(description='发布前合规检查(自动化 15 项 + PASS/FAIL)')
+    parser.add_argument('slug', nargs='?', help='文章 slug,如 asean-ai-supply-chain')
+    parser.add_argument('--all', action='store_true', help='检查 drafts/posts/ 下所有草稿')
+    parser.add_argument('--strict', action='store_true', help='任意 FAIL 直接 exit 1')
+    parser.add_argument('--pre-publish', action='store_true', help='发布前校验，将 B14 跟踪记录检查降级为 WARN')
+    parser.add_argument('--json', action='store_true', help='输出 JSON 格式(供其他脚本消费)')
+
+    args = parser.parse_args()
+
+    if not args.slug and not args.all:
+        parser.print_help()
+        sys.exit(1)
+
+    if args.all:
+        passed = check_all(strict=args.strict, pre_publish=args.pre_publish)
+        sys.exit(0 if passed >= 0 else 1)
+
+    ok = check_one(args.slug, strict=args.strict, pre_publish=args.pre_publish)
+    sys.exit(0 if ok or not args.strict else 1)
+
+
+if __name__ == '__main__':
+    main()
+
+# ── Class wrapper for src/ integration ──────────────────────────────────────
+
+
+class ComplianceChecker:
+    """High-level wrapper for content-factory compliance checks.
+
+    Wraps the module-level `run_checks()` function for object-oriented use.
+
+    Example:
+        >>> from content_factory.compliance import ComplianceChecker
+        >>> checker = ComplianceChecker(slug="ai-fiber-value-chain")
+        >>> result = checker.run()
+        >>> print(f"Passed: {result.passed_count}, Failed: {result.failed_count}")
+    """
+
+    def __init__(self, slug: str, strict: bool = False, pre_publish: bool = False) -> None:
+        self.slug = slug
+        self.strict = strict
+        self.pre_publish = pre_publish
+        self.results: list = []
+
+    def run(self) -> "ComplianceResult":
+        """Run all compliance checks for the article.
+
+        Returns:
+            A ComplianceResult with details.
+        """
+        from pathlib import Path
+
+        post_path = Path(f"drafts/posts/{self.slug}.md")
+        if not post_path.exists():
+            styled_path = Path(f"drafts/posts/{self.slug}.styled.md")
+            if styled_path.exists():
+                content = styled_path.read_text(encoding="utf-8")
+            else:
+                raise FileNotFoundError(f"Article not found: {post_path}")
+        else:
+            content = post_path.read_text(encoding="utf-8")
+
+        self.results = run_checks(
+            slug=self.slug,
+            content=content,
+            strict=self.strict,
+            pre_publish=self.pre_publish,
+        )
+
+        passed = sum(1 for _, status, _, _ in self.results if status == "PASS")
+        warned = sum(1 for _, status, _, _ in self.results if status == "WARN")
+        failed = sum(1 for _, status, _, _ in self.results if status == "FAIL")
+
+        return ComplianceResult(
+            slug=self.slug,
+            total=len(self.results),
+            passed=passed,
+            warned=warned,
+            failed=failed,
+            results=self.results,
+        )
+
+
+class ComplianceResult:
+    """Result of a compliance check run."""
+
+    def __init__(
+        self,
+        slug: str,
+        total: int,
+        passed: int,
+        warned: int,
+        failed: int,
+        results: list,
+    ) -> None:
+        self.slug = slug
+        self.total = total
+        self.passed_count = passed
+        self.warned_count = warned
+        self.failed_count = failed
+        self.results = results
+
+    @property
+    def has_failures(self) -> bool:
+        return self.failed_count > 0
+
+    def __repr__(self) -> str:
+        return (
+            f"ComplianceResult(slug={self.slug!r}, "
+            f"total={self.total}, passed={self.passed_count}, "
+            f"warned={self.warned_count}, failed={self.failed_count})"
+        )
