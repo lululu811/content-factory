@@ -1,112 +1,32 @@
-[build-system]
-requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [project]
-name = "content-factory"
-version = "0.2.0"
-description = "End-to-end pipeline for producing in-depth research articles for Chinese A-share investment newsletters. Includes cninfo announcement scraper, compliance checker, image generator, and a 17-step SOP."
+name = "content-factory-workspace"
+version = "0.3.0"
+description = "投研内容 AI 编辑部操作系统 - monorepo workspace"
+requires-python = ">=3.11"
 readme = "README.md"
 license = { text = "MIT" }
 authors = [
   { name = "chenliitaz", email = "chenliitaz@gmail.com" },
 ]
-maintainers = [
-  { name = "chenliitaz", email = "chenliitaz@gmail.com" },
-]
-keywords = [
-  "content-factory",
-  "公众号",
-  "投资研究",
-  "投研",
-  "深度文",
-  "光通信",
-  "A股",
-  "cninfo",
-  "巨潮",
-  "compliance",
-  "image-generation",
-  "research-pipeline",
-  "writing-pipeline",
-  "Tushare",
-  "matplotlib",
-]
-classifiers = [
-  "Development Status :: 4 - Beta",
-  "Intended Audience :: Developers",
-  "Intended Audience :: Financial and Insurance Industry",
-  "License :: OSI Approved :: MIT License",
-  "Operating System :: OS Independent",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13",
-  "Topic :: Office/Business :: Financial :: Investment",
-  "Topic :: Software Development :: Libraries :: Python Modules",
-  "Topic :: Utilities",
-  "Natural Language :: Chinese (Simplified)",
-  "Natural Language :: English",
-]
-requires-python = ">=3.9"
-dependencies = [
-  # ── cninfo (core) ──
-  "pdfplumber>=0.10.0",
-  "requests>=2.31.0",
-  # ── CLI ──
-  "typer>=0.12.0",
-  "rich>=13.7.0",
-  # ── images ──
-  "matplotlib>=3.7.0",
-  # ── parsing ──
-  "PyYAML>=6.0",
+
+[tool.uv.workspace]
+members = [
+    "packages/core",
+    "packages/sdk",
+    "packages/server",
+    "packages/cli",
+    "packages/domains/*",
+    "packages/adapters/*",
+    "packages/editors/*",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
-  "pytest>=7.4.0",
-  "pytest-cov>=4.1.0",
-  "pytest-mock>=3.11.0",
-  "ruff>=0.1.0",
-  "mypy>=1.7.0",
-  "pre-commit>=3.5.0",
-  "mkdocs>=1.5.0",
-  "mkdocs-material>=9.5.0",
-  "types-PyYAML",
-  "types-requests",
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.5.0",
+    "mypy>=1.10.0",
 ]
-test = [
-  "pytest>=7.4.0",
-  "pytest-cov>=4.1.0",
-  "pytest-mock>=3.11.0",
-  "types-PyYAML",
-  "types-requests",
-]
-
-[project.urls]
-Homepage = "https://github.com/lululu811/content-factory"
-Repository = "https://github.com/lululu811/content-factory"
-Documentation = "https://lululu811.github.io/content-factory"
-"Bug Tracker" = "https://github.com/lululu811/content-factory/issues"
-Changelog = "https://github.com/lululu811/content-factory/blob/main/CHANGELOG.md"
-SOP = "https://github.com/lululu811/content-factory/blob/main/SOP.md"
-
-# ── CLI 入口 ──
-[project.scripts]
-cf = "content_factory.cli:app"
-
-# ── setuptools 配置 ──
-[tool.setuptools]
-package-dir = { "" = "src" }
-include-package-data = true
-
-[tool.setuptools.packages.find]
-where = ["src"]
-include = ["content_factory*"]
-
-[tool.setuptools.package-data]
-"content_factory.cninfo" = ["py.typed"]
 
 # ── Ruff ──
 [tool.ruff]
