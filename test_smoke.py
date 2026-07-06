@@ -1,3 +1,4 @@
+import pytest
 #!/usr/bin/env python3
 """
 冒烟测试套件
@@ -35,6 +36,7 @@ def test_component_discovery():
     return True
 
 
+@pytest.mark.asyncio
 async def test_event_bus():
     """测试 2: 事件总线"""
     print("\n" + "=" * 70)
@@ -62,6 +64,7 @@ async def test_event_bus():
     return True
 
 
+@pytest.mark.asyncio
 async def test_compliance_check():
     """测试 3: 合规检查"""
     print("\n" + "=" * 70)
@@ -89,6 +92,7 @@ async def test_compliance_check():
     return True
 
 
+@pytest.mark.asyncio
 async def test_editor_draft():
     """测试 4: 编辑生成草稿"""
     print("\n" + "=" * 70)
@@ -115,6 +119,7 @@ async def test_editor_draft():
     return True
 
 
+@pytest.mark.asyncio
 async def test_data_source():
     """测试 5: 数据源"""
     print("\n" + "=" * 70)
@@ -132,6 +137,7 @@ async def test_data_source():
     return True
 
 
+@pytest.mark.asyncio
 async def test_full_workflow():
     """测试 6: 完整工作流"""
     print("\n" + "=" * 70)

@@ -19,6 +19,7 @@ from content_factory_core.events import (
     DraftReady,
 )
 from content_factory_core.config import Settings
+from content_factory_core.tenant_manager import TenantManager, get_tenant_manager
 
 __version__ = "0.3.0"
 
@@ -37,4 +38,7 @@ __all__ = [
     "DraftReady",
     # Config
     "Settings",
+    # Multi-tenant
+    "TenantManager",
+    "get_tenant_manager",
 ]

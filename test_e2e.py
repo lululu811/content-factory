@@ -1,3 +1,4 @@
+import pytest
 #!/usr/bin/env python3
 """
 端到端测试：完整工作流验证
@@ -19,6 +20,7 @@ from content_factory_publish import PublishProvider
 from content_factory_tushare import TushareDataSource
 
 
+@pytest.mark.asyncio
 async def test_end_to_end():
     """端到端测试"""
     print("=" * 70)
