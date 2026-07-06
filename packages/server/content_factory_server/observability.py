@@ -80,23 +80,42 @@ class Metrics:
 metrics = Metrics()
 
 
+_initialized = False
+
+
 def init_tracing(service_name: str = "content-factory") -> bool:
     """
     初始化 OpenTelemetry 追踪
 
+    默认仅启用 TracerProvider，不附加导出器（避免污染 stdout）。
+    需要导出 span 时，设置环境变量:
+      CF_TRACE_CONSOLE=1   控制台输出
+      CF_TRACE_OTLP=1      OTLP 协议（需安装 opentelemetry-exporter-otlp）
+
     Returns:
         是否成功初始化（False 表示使用降级模式）
     """
+    global _initialized
+    if _initialized:
+        return True
+
     if not OTEL_AVAILABLE:
         logger.info("telemetry.fallback", reason="opentelemetry not installed")
         return False
 
     resource = Resource.create({"service.name": service_name})
     provider = TracerProvider(resource=resource)
-    processor = BatchSpanProcessor(ConsoleSpanExporter())
-    provider.add_span_processor(processor)
-    trace.set_tracer_provider(provider)
 
+    import os
+    if os.getenv("CF_TRACE_CONSOLE"):
+        try:
+            processor = BatchSpanProcessor(ConsoleSpanExporter())
+            provider.add_span_processor(processor)
+        except Exception:
+            pass  # pytest 等环境下 stdout 可能被捕获
+
+    trace.set_tracer_provider(provider)
+    _initialized = True
     logger.info("telemetry.initialized", service=service_name)
     return True
 

@@ -5,8 +5,9 @@ SPI (Service Provider Interface)
 这些接口是稳定的，一旦发布只能加不能改（语义化版本）。
 """
 
-from typing import Any, Protocol, runtime_checkable
+from typing import Any, Protocol, Union, runtime_checkable
 
+from content_factory_core.events import ArticlePublished
 from content_factory_core.models import (
     Article,
     Draft,
@@ -72,15 +73,19 @@ class ComplianceProvider(Protocol):
 
 @runtime_checkable
 class PublisherProvider(Protocol):
-    """发布组件接口"""
+    """
+    发布组件接口
 
-    async def publish(self, article: Article) -> dict[str, Any]:
+    实现可返回 dict 或 ArticlePublished 事件对象。
+    推荐实现为返回 ArticlePublished（带 publish_url 属性）。
+    """
+
+    async def publish(self, article: Article) -> Union[dict[str, Any], ArticlePublished]:
         """
         发布文章
-        返回: {"success": bool, "url": str, "metadata": {...}}
-        """
-        ...
 
-    async def unpublish(self, article_id: str) -> bool:
-        """撤回发布"""
+        返回:
+          - dict: {"success": bool, "url": str, "metadata": {...}}
+          - ArticlePublished: 事件对象（推荐）
+        """
         ...

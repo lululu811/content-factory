@@ -19,7 +19,12 @@ from content_factory_core.events import (
     DraftReady,
 )
 from content_factory_core.config import Settings
-from content_factory_core.tenant_manager import TenantManager, get_tenant_manager
+from content_factory_core.tenant_manager import (
+    PostgreSQLTenantManager,
+    TenantManager,
+    create_tenant_manager,
+    get_tenant_manager,
+)
 
 __version__ = "0.3.0"
 
@@ -40,5 +45,7 @@ __all__ = [
     "Settings",
     # Multi-tenant
     "TenantManager",
+    "PostgreSQLTenantManager",
+    "create_tenant_manager",
     "get_tenant_manager",
 ]

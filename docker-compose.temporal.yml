@@ -5,26 +5,35 @@ version: '3.8'
 #
 # 启动: docker-compose -f docker-compose.temporal.yml up -d
 # UI: http://localhost:8080
+# gRPC: localhost:7233
+#
+# 镜像 tag 说明:
+#   - auto-setup:latest  = 最新稳定版（官方推荐）
+#   - ui:latest          = 最新 Web UI
+#   如需固定版本，可改为 temporalio/auto-setup:1.26 等
 
 services:
   temporal:
-    image: temporalio/auto-setup:1.24
+    image: temporalio/auto-setup:latest
     container_name: content-factory-temporal
     ports:
       - "7233:7233"   # gRPC
     environment:
       - DB=sqlite
       - DB_PATH=/data/temporal.db
+      - LOG_LEVEL=warn
     volumes:
       - temporal-data:/data
     healthcheck:
-      test: ["CMD", "temporal", "operator", "cluster", "health"]
+      # Temporal CLI 自带健康检查端点
+      test: ["CMD-SHELL", "timeout 5 bash -c 'echo > /dev/tcp/localhost/7233' || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
 
   temporal-web:
-    image: temporalio/ui:2.27
+    image: temporalio/ui:latest
     container_name: content-factory-temporal-web
     ports:
       - "8080:8080"
@@ -43,7 +52,9 @@ services:
     command: ["python", "-m", "content_factory_server.temporal_worker"]
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
-      - CF_TUSHARE_TOKEN=${CF_TUSHARE_TOKEN}
+      - CF_TUSHARE_TOKEN=${CF_TUSHARE_TOKEN:-}
+      - CF_WECHAT_APPID=${CF_WECHAT_APPID:-}
+      - CF_WECHAT_SECRET=${CF_WECHAT_SECRET:-}
     depends_on:
       temporal:
         condition: service_healthy
