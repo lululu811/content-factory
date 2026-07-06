@@ -1,12 +1,23 @@
 [project]
 name = "content-factory-compliance"
 version = "0.3.0"
-description = "投研内容 AI 编辑部 - compliance 领域组件"
+description = "合规检查领域组件 - 投研内容 AI 编辑部"
 requires-python = ">=3.11"
-dependencies = ["content-factory-sdk"]
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+  { name = "chenliitaz", email = "chenliitaz@gmail.com" },
+]
+dependencies = [
+    "content-factory-sdk",
+    "pydantic>=2.7.0",
+]
 
 [tool.uv.sources]
 content-factory-sdk = { workspace = true }
+
+[project.entry-points."content_factory.compliance"]
+default = "content_factory_compliance:DefaultComplianceProvider"
 
 [build-system]
 requires = ["hatchling"]
