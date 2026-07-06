@@ -1,12 +1,23 @@
 [project]
 name = "content-factory-research"
 version = "0.3.0"
-description = "投研内容 AI 编辑部 - research 领域组件"
+description = "研究领域组件 - 投研内容 AI 编辑部"
 requires-python = ">=3.11"
-dependencies = ["content-factory-sdk"]
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+  { name = "chenliitaz", email = "chenliitaz@gmail.com" },
+]
+dependencies = [
+    "content-factory-sdk",
+    "pydantic>=2.7.0",
+]
 
 [tool.uv.sources]
 content-factory-sdk = { workspace = true }
+
+[project.entry-points."content_factory.research"]
+default = "content_factory_research:DefaultResearchProvider"
 
 [build-system]
 requires = ["hatchling"]

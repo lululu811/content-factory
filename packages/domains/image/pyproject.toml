@@ -1,12 +1,15 @@
 [project]
 name = "content-factory-image"
 version = "0.3.0"
-description = "投研内容 AI 编辑部 - image 领域组件"
+description = "配图领域组件 - 投研内容 AI 编辑部"
 requires-python = ">=3.11"
 dependencies = ["content-factory-sdk"]
 
 [tool.uv.sources]
 content-factory-sdk = { workspace = true }
+
+[project.entry-points."content_factory.image"]
+default = "content_factory_image:ImageProvider"
 
 [build-system]
 requires = ["hatchling"]
