@@ -9,6 +9,7 @@ resolution-markers = [
 [manifest]
 members = [
     "content-factory-bibigpt",
+    "content-factory-bilibili",
     "content-factory-cli",
     "content-factory-cninfo",
     "content-factory-compliance",
@@ -17,12 +18,14 @@ members = [
     "content-factory-editor-xi-li-pai",
     "content-factory-editor-yan-su-pai",
     "content-factory-image",
+    "content-factory-knowledge",
     "content-factory-minimax",
     "content-factory-publish",
     "content-factory-research",
     "content-factory-sdk",
     "content-factory-server",
     "content-factory-topic",
+    "content-factory-trendradar",
     "content-factory-tushare",
     "content-factory-wechat",
     "content-factory-workspace",
@@ -147,6 +150,21 @@ requires-dist = [
 ]
 
 [[package]]
+name = "content-factory-bilibili"
+version = "0.3.0"
+source = { editable = "packages/adapters/bilibili" }
+dependencies = [
+    { name = "content-factory-sdk" },
+    { name = "httpx" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "content-factory-sdk", editable = "packages/sdk" },
+    { name = "httpx", specifier = ">=0.27.0" },
+]
+
+[[package]]
 name = "content-factory-cli"
 version = "0.3.0"
 source = { editable = "packages/cli" }
@@ -257,6 +275,21 @@ dependencies = [
 requires-dist = [{ name = "content-factory-sdk", editable = "packages/sdk" }]
 
 [[package]]
+name = "content-factory-knowledge"
+version = "0.3.0"
+source = { editable = "packages/adapters/knowledge" }
+dependencies = [
+    { name = "content-factory-sdk" },
+    { name = "httpx" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "content-factory-sdk", editable = "packages/sdk" },
+    { name = "httpx", specifier = ">=0.27.0" },
+]
+
+[[package]]
 name = "content-factory-minimax"
 version = "0.3.0"
 source = { editable = "packages/adapters/minimax" }
@@ -353,6 +386,17 @@ requires-dist = [
 name = "content-factory-topic"
 version = "0.3.0"
 source = { editable = "packages/domains/topic" }
+dependencies = [
+    { name = "content-factory-sdk" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "content-factory-sdk", editable = "packages/sdk" }]
+
+[[package]]
+name = "content-factory-trendradar"
+version = "0.3.0"
+source = { editable = "packages/adapters/trendradar" }
 dependencies = [
     { name = "content-factory-sdk" },
 ]

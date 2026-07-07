@@ -7,6 +7,7 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Tests: pytest](https://img.shields.io/badge/tests-9_passed-green.svg)](https://pytest.org)
+[![Components](https://img.shields.io/badge/components-12_registered-blue.svg)](packages/)
 
 ---
 
@@ -16,7 +17,10 @@
 - **👥 多编辑风格** — 内置"严肃派""犀利派"等 AI 编辑，支持 A/B 测试并行产出
 - **🏢 多租户隔离** — Schema-level 隔离（PostgreSQL）+ 内存后端（开发模式）
 - **🔍 18 项合规检查** — 覆盖标题/数据/免责/时效/引用等全维度
-- **📊 真实数据源** — Tushare（行情/新闻）+ 巨潮（公告）
+- **📊 真实数据源** — Tushare（行情/新闻）+ 巨潮（公告）+ TrendRadar（47 个 RSS 热点源）
+- **📺 B站一手资料** — 字幕/弹幕/UP主动态/充电问答（本地 bilibili_toolkit 服务）
+- **📡 RSS 热点聚合** — TrendRadar SQLite 直读，AI 风格热点筛选
+- **🧠 知识库 RAG** — hybrid/mmr/vector/bm25 多模式语义检索
 - **📤 微信发布** — 微信公众号 API 直接集成（access_token 缓存 + 图文上传 + 发布）
 - **🎬 BibiGPT 集成** — 任意视频/音频 URL 一键转结构化摘要
 - **🎨 妙想 (MiniMax) 集成** — 图片/视频/音乐/语音多模态生成
@@ -39,7 +43,8 @@
 │                        Components                            │
 │  topic · research · writing · compliance · image · publish  │
 │  yan-su-pai · xi-li-pai · tushare · cninfo · wechat         │
-│  bibigpt · minimax · datapro                                │
+│  bibigpt · minimax · datapro · bilibili · trendradar        │
+│  knowledge (RAG)                                            │
 ├─────────────────────────────────────────────────────────────┤
 │                         Platform                             │
 │   Core Models · SDK SPI · Registry · OpenTelemetry          │
@@ -70,7 +75,10 @@ packages/
 │   ├── wechat/                   # 微信公众号发布
 │   ├── bibigpt/                  # BibiGPT 视频/音频摘要
 │   ├── minimax/                  # MiniMax (妙想) 多模态生成
-│   └── datapro/                  # dataPro 专业数据检索
+│   ├── datapro/                  # dataPro 专业数据检索
+│   ├── bilibili/                 # B站字幕/弹幕/动态/充电问答
+│   ├── trendradar/               # TrendRadar RSS 热点聚合
+│   └── knowledge/                # RAG 知识库语义检索
 └── editors/                      # 编辑组件
     ├── yan-su-pai/               # 严肃派（formality=0.9）
     └── xi-li-pai/                # 犀利派（formality=0.3）
@@ -181,6 +189,10 @@ uv run pytest --cov=content_factory_server --cov-report=term-missing
 | `CF_MINIMAX_API_KEY` | 否 | MiniMax (妙想) API key（图片/视频/音乐/语音） |
 | `CF_MINIMAX_GROUP_ID` | 否 | MiniMax Group ID |
 | `CF_DATAPRO_TOKEN` | 否 | dataPro 专业搜索 token（学术/工商/风险/股票） |
+| `CF_BILIBILI_URL` | 否 | B站工具服务地址（默认 `http://127.0.0.1:8100`） |
+| `CF_BILIBILI_API_KEY` | 否 | B站工具 API Key（可选） |
+| `CF_TRENDRADAR_DB_DIR` | 否 | TrendRadar SQLite 目录（默认 `/Users/chenlei/001_project/TrendRadar/output/rss`） |
+| `CF_KNOWLEDGE_URL` | 否 | 知识库 RAG API 地址（默认 `http://127.0.0.1:8002`） |
 | `CF_WECHAT_APPID` | 否 | 微信公众号 AppID（未配置时使用 mock） |
 | `CF_WECHAT_SECRET` | 否 | 微信公众号 Secret |
 | `CF_DATABASE_URL` | 否 | PostgreSQL 连接串（未配置时使用内存后端） |

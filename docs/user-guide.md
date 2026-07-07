@@ -14,12 +14,13 @@
 8. [多编辑风格与 A/B 测试](#多编辑风格与-ab-测试)
 9. [合规检查](#合规检查)
 10. [微信公众号发布](#微信公众号发布)
-11. [可观测性](#可观测性)
-12. [Temporal 编排](#temporal-编排)
-13. [Web UI 管理后台](#web-ui-管理后台)
-14. [开发新组件](#开发新组件)
-15. [生产部署](#生产部署)
-16. [故障排查](#故障排查)
+11. [外部数据源与知识库](#外部数据源与知识库)
+12. [可观测性](#可观测性)
+13. [Temporal 编排](#temporal-编排)
+14. [Web UI 管理后台](#web-ui-管理后台)
+15. [开发新组件](#开发新组件)
+16. [生产部署](#生产部署)
+17. [故障排查](#故障排查)
 
 ---
 
@@ -112,9 +113,15 @@ packages/
 │   ├── image/
 │   └── publish/
 ├── adapters/      外部集成
-│   ├── tushare/   (A 股数据)
-│   ├── cninfo/    (公告数据)
-│   └── wechat/    (微信发布)
+│   ├── tushare/     (A 股数据 · myMCP 兼容)
+│   ├── cninfo/      (公告数据)
+│   ├── wechat/      (微信发布)
+│   ├── bibigpt/     (视频/音频摘要)
+│   ├── minimax/     (妙想 · 多模态生成)
+│   ├── datapro/     (专业搜索)
+│   ├── bilibili/    (B站字幕/弹幕/动态/充电问答)
+│   ├── trendradar/  (RSS 热点聚合 · 47 源)
+│   └── knowledge/   (RAG 知识库检索)
 └── editors/       编辑组件
     ├── yan-su-pai/  (严肃派)
     └── xi-li-pai/   (犀利派)
@@ -575,6 +582,107 @@ publisher.is_mock  # True
 
 ---
 
+## 外部数据源与知识库
+
+除内置的 Tushare / 巨潮外，平台还提供 3 个外部集成适配器：**B站一手资料**、**TrendRadar RSS 热点**、**RAG 知识库**。三者都通过 entry point 自动注册，符合 SPI 协议。
+
+### B站一手资料（bilibili）
+
+把本地 `bilibili_toolkit` FastAPI 服务封装为 `DataSourceProvider`，获取字幕/弹幕/UP主动态/充电问答。
+
+**前置依赖**：先启动 B站工具服务：
+
+```bash
+cd /Users/chenlei/002_tools/bilibili-subtitle-downloader
+uvicorn bilibili_toolkit.server:app --host 127.0.0.1 --port 8100
+```
+
+**用法**：
+
+```python
+from content_factory_bilibili import BilibiliDataSource
+
+bili = BilibiliDataSource()  # 默认读 CF_BILIBILI_URL=http://127.0.0.1:8100
+
+# 字幕 markdown
+r = await bili.fetch_video_subtitle("BV1xx411c7mD")
+
+# 弹幕
+dm = await bili.fetch_danmaku("BV1xx411c7mD")
+
+# UP主动态 / 充电问答
+dynamics = await bili.fetch_up_dynamics("12345678")
+qa = await bili.fetch_qa("12345678")
+```
+
+> 字幕/弹幕是异步任务，适配器会自动轮询 `/api/task/{id}` 直到完成。
+
+### TrendRadar RSS 热点（trendradar）
+
+直读 TrendRadar 项目的 SQLite 输出（`output/rss/YYYY-MM-DD.db`），覆盖 47 个 RSS 源（财联社、华尔街见闻、36氪、界面、cnBeta…）。无需 TrendRadar 服务运行，只需本地 SQLite 存在。
+
+**用法**：
+
+```python
+from content_factory_trendradar import TrendRadarDataSource
+
+tr = TrendRadarDataSource()
+
+# AI 风格热点聚合：从所有 RSS 源中筛出与 topic 相关的条目
+hits = await tr.fetch_trending("AI Agent 行业", days=3, limit=20)
+
+# 单源最近 N 天
+items = await tr.fetch_rss("cls-telegraph", days=1)
+
+# 订阅源清单
+sources = await tr.list_sources()
+
+# 单日摘要（类日报）
+summary = await tr.daily_summary()
+```
+
+> 打分规则：标题命中 ×2、摘要命中 ×1；6 小时内 +3、24 小时内 +1.5。
+
+### RAG 知识库（knowledge）
+
+HTTP 客户端调用 `workspace/knowledge/knowledge-base` 的 RAG API，对内部知识库做语义检索。
+
+**前置依赖**：
+
+```bash
+cd /Users/chenlei/workspace/knowledge/knowledge-base
+source .venv/bin/activate
+uvicorn api:app --host 127.0.0.1 --port 8002
+```
+
+**用法**：
+
+```python
+from content_factory_knowledge import KnowledgeSearchProvider
+
+kb = KnowledgeSearchProvider()  # 默认 CF_KNOWLEDGE_URL=http://127.0.0.1:8002
+
+# 语义检索：hybrid / mmr / vector / bm25
+r = await kb.search("什么是 Alpha 因子", domain="hybrid", limit=10)
+for doc in r["results"]:
+    print(doc["title"], doc["score"])
+
+# RAG 完整链路：检索 + LLM 生成回答
+answer = await kb.query_with_answer("什么是 Alpha 因子")
+print(answer["answer"])
+```
+
+### 环境变量一览
+
+| 变量 | 默认值 | 说明 |
+|---|---|---|
+| `CF_BILIBILI_URL` | `http://127.0.0.1:8100` | B站工具服务地址 |
+| `CF_BILIBILI_API_KEY` | - | B站 API Key（可选） |
+| `CF_TRENDRADAR_DB_DIR` | `/Users/chenlei/001_project/TrendRadar/output/rss` | SQLite 目录 |
+| `CF_KNOWLEDGE_URL` | `http://127.0.0.1:8002` | 知识库 RAG API 地址 |
+
+---
+
 ## 可观测性
 
 ### OpenTelemetry
@@ -840,6 +948,11 @@ export CF_MINIMAX_GROUP_ID="your_group_id"
 # 专业搜索
 export CF_DATAPRO_TOKEN="your_token"                     # dataPro（学术/工商/风险/股票/新闻）
 
+# 外部数据源与知识库
+export CF_BILIBILI_URL="http://127.0.0.1:8100"           # B站工具服务（bilibili_toolkit）
+export CF_TRENDRADAR_DB_DIR="/path/to/TrendRadar/output/rss"  # TrendRadar SQLite 目录
+export CF_KNOWLEDGE_URL="http://127.0.0.1:8002"          # RAG 知识库 API
+
 # 发布
 export CF_WECHAT_APPID="wx..."                           # 微信公众号
 export CF_WECHAT_SECRET="..."
@@ -849,10 +962,6 @@ export CF_DATABASE_URL="postgresql://user:pass@localhost/content_factory"
 
 # 调试
 export CF_TRACE_CONSOLE=1                                # OpenTelemetry 控制台
-```
-
-# 可选（调试）
-export CF_TRACE_CONSOLE=1
 ```
 
 ### 监控建议
