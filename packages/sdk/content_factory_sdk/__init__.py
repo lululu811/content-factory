@@ -10,6 +10,8 @@ from content_factory_sdk.spi import (
     EditorProvider,
     PublisherProvider,
     ComplianceProvider,
+    ContentGeneratorProvider,
+    SearchProvider,
 )
 from content_factory_sdk.registry import (
     ComponentRegistry,
@@ -28,6 +30,8 @@ __all__ = [
     "EditorProvider",
     "PublisherProvider",
     "ComplianceProvider",
+    "ContentGeneratorProvider",
+    "SearchProvider",
     # Registry
     "ComponentRegistry",
     "discover_components",

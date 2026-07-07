@@ -10,6 +10,7 @@ authors = [
 ]
 dependencies = [
     "content-factory-sdk",
+    "httpx>=0.27",
 ]
 
 [tool.uv.sources]

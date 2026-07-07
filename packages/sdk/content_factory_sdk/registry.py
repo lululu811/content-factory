@@ -11,9 +11,11 @@ import structlog
 
 from content_factory_sdk.spi import (
     ComplianceProvider,
+    ContentGeneratorProvider,
     DataSourceProvider,
     EditorProvider,
     PublisherProvider,
+    SearchProvider,
 )
 
 logger = structlog.get_logger()
@@ -26,6 +28,8 @@ ENTRY_POINT_GROUPS = {
     "editors": "content_factory.editors",
     "compliance": "content_factory.compliance",
     "publishers": "content_factory.publishers",
+    "content_generators": "content_factory.content_generators",
+    "search_providers": "content_factory.search_providers",
 }
 
 
@@ -37,6 +41,8 @@ class ComponentRegistry:
         self._editors: dict[str, EditorProvider] = {}
         self._compliance: dict[str, ComplianceProvider] = {}
         self._publishers: dict[str, PublisherProvider] = {}
+        self._content_generators: dict[str, ContentGeneratorProvider] = {}
+        self._search_providers: dict[str, SearchProvider] = {}
 
     def register_data_source(self, name: str, provider: DataSourceProvider) -> None:
         """注册数据源组件"""
@@ -58,6 +64,18 @@ class ComponentRegistry:
         self._publishers[name] = provider
         logger.info("registered_publisher", name=name)
 
+    def register_content_generator(
+        self, name: str, provider: ContentGeneratorProvider
+    ) -> None:
+        """注册内容生成组件（图片/视频/音乐/语音）"""
+        self._content_generators[name] = provider
+        logger.info("registered_content_generator", name=name)
+
+    def register_search_provider(self, name: str, provider: SearchProvider) -> None:
+        """注册专业搜索组件（学术/工商/风险/股票）"""
+        self._search_providers[name] = provider
+        logger.info("registered_search_provider", name=name)
+
     def get_data_source(self, name: str) -> DataSourceProvider | None:
         """获取数据源"""
         return self._data_sources.get(name)
@@ -74,6 +92,14 @@ class ComponentRegistry:
         """获取发布"""
         return self._publishers.get(name)
 
+    def get_content_generator(self, name: str) -> ContentGeneratorProvider | None:
+        """获取内容生成器"""
+        return self._content_generators.get(name)
+
+    def get_search_provider(self, name: str) -> SearchProvider | None:
+        """获取专业搜索"""
+        return self._search_providers.get(name)
+
     def list_components(self) -> dict[str, list[str]]:
         """列出所有已注册的组件"""
         return {
@@ -81,6 +107,8 @@ class ComponentRegistry:
             "editors": list(self._editors.keys()),
             "compliance": list(self._compliance.keys()),
             "publishers": list(self._publishers.keys()),
+            "content_generators": list(self._content_generators.keys()),
+            "search_providers": list(self._search_providers.keys()),
         }
 
 
@@ -128,6 +156,24 @@ def discover_components(registry: ComponentRegistry | None = None) -> ComponentR
             registry.register_publisher(ep.name, provider)
         except Exception as e:
             logger.error("failed_to_load_publisher", name=ep.name, error=str(e))
+
+    # 发现内容生成器
+    for ep in entry_points(group=ENTRY_POINT_GROUPS["content_generators"]):
+        try:
+            provider_class = ep.load()
+            provider = provider_class()
+            registry.register_content_generator(ep.name, provider)
+        except Exception as e:
+            logger.error("failed_to_load_content_generator", name=ep.name, error=str(e))
+
+    # 发现专业搜索
+    for ep in entry_points(group=ENTRY_POINT_GROUPS["search_providers"]):
+        try:
+            provider_class = ep.load()
+            provider = provider_class()
+            registry.register_search_provider(ep.name, provider)
+        except Exception as e:
+            logger.error("failed_to_load_search_provider", name=ep.name, error=str(e))
 
     logger.info("components_discovered", summary=registry.list_components())
     return registry

@@ -18,6 +18,9 @@
 - **🔍 18 项合规检查** — 覆盖标题/数据/免责/时效/引用等全维度
 - **📊 真实数据源** — Tushare（行情/新闻）+ 巨潮（公告）
 - **📤 微信发布** — 微信公众号 API 直接集成（access_token 缓存 + 图文上传 + 发布）
+- **🎬 BibiGPT 集成** — 任意视频/音频 URL 一键转结构化摘要
+- **🎨 妙想 (MiniMax) 集成** — 图片/视频/音乐/语音多模态生成
+- **🔎 dataPro 集成** — 学术/工商/风险/股票/新闻专业检索
 - **🔭 OpenTelemetry** — 真实追踪（trace_id）+ 指标收集（counters / gauges / histograms）
 - **⏱️ Temporal 编排** — 文章生产工作流（6 Activity + Signal + Query）
 - **🌐 Web 管理后台** — 单页 Dashboard，零依赖
@@ -36,6 +39,7 @@
 │                        Components                            │
 │  topic · research · writing · compliance · image · publish  │
 │  yan-su-pai · xi-li-pai · tushare · cninfo · wechat         │
+│  bibigpt · minimax · datapro                                │
 ├─────────────────────────────────────────────────────────────┤
 │                         Platform                             │
 │   Core Models · SDK SPI · Registry · OpenTelemetry          │
@@ -61,9 +65,12 @@ packages/
 │   ├── image/                    # 配图
 │   └── publish/                  # 发布
 ├── adapters/                     # 外部集成
-│   ├── tushare/                  # Tushare 数据源
+│   ├── tushare/                  # Tushare 数据源（支持 myMCP 后端）
 │   ├── cninfo/                   # 巨潮数据源
-│   └── wechat/                   # 微信公众号发布
+│   ├── wechat/                   # 微信公众号发布
+│   ├── bibigpt/                  # BibiGPT 视频/音频摘要
+│   ├── minimax/                  # MiniMax (妙想) 多模态生成
+│   └── datapro/                  # dataPro 专业数据检索
 └── editors/                      # 编辑组件
     ├── yan-su-pai/               # 严肃派（formality=0.9）
     └── xi-li-pai/                # 犀利派（formality=0.3）
@@ -169,6 +176,11 @@ uv run pytest --cov=content_factory_server --cov-report=term-missing
 | 变量名 | 必需 | 说明 |
 |---|---|---|
 | `CF_TUSHARE_TOKEN` | 否 | Tushare API token（未配置时使用 mock） |
+| `CF_TUSHARE_BASE_URL` | 否 | myMCP 兼容端点（如 `https://tt.xiaodefa.cn/mcp/token=xxx`） |
+| `CF_BIBIGPT_TOKEN` | 否 | BibiGPT API token（视频/音频摘要） |
+| `CF_MINIMAX_API_KEY` | 否 | MiniMax (妙想) API key（图片/视频/音乐/语音） |
+| `CF_MINIMAX_GROUP_ID` | 否 | MiniMax Group ID |
+| `CF_DATAPRO_TOKEN` | 否 | dataPro 专业搜索 token（学术/工商/风险/股票） |
 | `CF_WECHAT_APPID` | 否 | 微信公众号 AppID（未配置时使用 mock） |
 | `CF_WECHAT_SECRET` | 否 | 微信公众号 Secret |
 | `CF_DATABASE_URL` | 否 | PostgreSQL 连接串（未配置时使用内存后端） |

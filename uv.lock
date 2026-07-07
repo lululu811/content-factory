@@ -13,9 +13,11 @@ members = [
     "content-factory-cninfo",
     "content-factory-compliance",
     "content-factory-core",
+    "content-factory-datapro",
     "content-factory-editor-xi-li-pai",
     "content-factory-editor-yan-su-pai",
     "content-factory-image",
+    "content-factory-minimax",
     "content-factory-publish",
     "content-factory-research",
     "content-factory-sdk",
@@ -135,10 +137,14 @@ version = "0.3.0"
 source = { editable = "packages/adapters/bibigpt" }
 dependencies = [
     { name = "content-factory-sdk" },
+    { name = "httpx" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "content-factory-sdk", editable = "packages/sdk" }]
+requires-dist = [
+    { name = "content-factory-sdk", editable = "packages/sdk" },
+    { name = "httpx", specifier = ">=0.27.0" },
+]
 
 [[package]]
 name = "content-factory-cli"
@@ -203,6 +209,21 @@ requires-dist = [
 ]
 
 [[package]]
+name = "content-factory-datapro"
+version = "0.3.0"
+source = { editable = "packages/adapters/datapro" }
+dependencies = [
+    { name = "content-factory-sdk" },
+    { name = "httpx" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "content-factory-sdk", editable = "packages/sdk" },
+    { name = "httpx", specifier = ">=0.27.0" },
+]
+
+[[package]]
 name = "content-factory-editor-xi-li-pai"
 version = "0.3.0"
 source = { editable = "packages/editors/xi-li-pai" }
@@ -234,6 +255,21 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [{ name = "content-factory-sdk", editable = "packages/sdk" }]
+
+[[package]]
+name = "content-factory-minimax"
+version = "0.3.0"
+source = { editable = "packages/adapters/minimax" }
+dependencies = [
+    { name = "content-factory-sdk" },
+    { name = "httpx" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "content-factory-sdk", editable = "packages/sdk" },
+    { name = "httpx", specifier = ">=0.27.0" },
+]
 
 [[package]]
 name = "content-factory-publish"
@@ -330,10 +366,14 @@ version = "0.3.0"
 source = { editable = "packages/adapters/tushare" }
 dependencies = [
     { name = "content-factory-sdk" },
+    { name = "httpx" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "content-factory-sdk", editable = "packages/sdk" }]
+requires-dist = [
+    { name = "content-factory-sdk", editable = "packages/sdk" },
+    { name = "httpx", specifier = ">=0.27" },
+]
 
 [[package]]
 name = "content-factory-wechat"

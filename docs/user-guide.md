@@ -828,15 +828,28 @@ volumes:
 ### 环境变量清单
 
 ```bash
-# 必需（数据源）
-export CF_TUSHARE_TOKEN="your_token"
+# 数据源
+export CF_TUSHARE_TOKEN="your_token"                     # Tushare（或 myMCP 兼容 token）
+export CF_TUSHARE_BASE_URL="https://tt.xiaodefa.cn/..."  # myMCP 兼容后端（可选，覆盖 Tushare）
+export CF_BIBIGPT_TOKEN="your_token"                     # BibiGPT 视频/音频摘要
 
-# 可选（微信发布）
-export CF_WECHAT_APPID="wx..."
+# 多模态生成
+export CF_MINIMAX_API_KEY="your_key"                     # MiniMax (妙想) API
+export CF_MINIMAX_GROUP_ID="your_group_id"
+
+# 专业搜索
+export CF_DATAPRO_TOKEN="your_token"                     # dataPro（学术/工商/风险/股票/新闻）
+
+# 发布
+export CF_WECHAT_APPID="wx..."                           # 微信公众号
 export CF_WECHAT_SECRET="..."
 
-# 可选（PostgreSQL）
+# 数据库
 export CF_DATABASE_URL="postgresql://user:pass@localhost/content_factory"
+
+# 调试
+export CF_TRACE_CONSOLE=1                                # OpenTelemetry 控制台
+```
 
 # 可选（调试）
 export CF_TRACE_CONSOLE=1

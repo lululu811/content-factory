@@ -89,3 +89,62 @@ class PublisherProvider(Protocol):
           - ArticlePublished: 事件对象（推荐）
         """
         ...
+
+
+@runtime_checkable
+class ContentGeneratorProvider(Protocol):
+    """
+    内容生成组件接口（图片 / 视频 / 音乐 / 语音 / 摘要）
+
+    用于接入外部生成式 AI 服务（MiniMax、BibiGPT 等）。
+    """
+
+    async def generate(self, prompt: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
+        """
+        生成内容
+
+        返回:
+          dict: {
+            "type": "image" | "video" | "music" | "speech" | "summary",
+            "url": str,              # 生成内容的 URL（可选）
+            "content": Any,          # 生成的原始内容
+            "metadata": {...}        # 服务返回的元数据
+          }
+        """
+        ...
+
+    def supported_types(self) -> list[str]:
+        """返回支持的内容类型列表"""
+        ...
+
+
+@runtime_checkable
+class SearchProvider(Protocol):
+    """
+    专业搜索组件接口
+
+    用于接入专业数据检索服务（dataPro、学术搜索、工商查询等）。
+    """
+
+    async def search(self, query: str, domain: str = "general", limit: int = 10) -> dict[str, Any]:
+        """
+        执行搜索
+
+        Args:
+          query: 自然语言查询
+          domain: 搜索域 ("general" / "academic" / "business" / "stock" / "risk" / "news")
+          limit: 返回条数
+
+        Returns:
+          dict: {
+            "domain": str,
+            "query": str,
+            "results": [{"title": str, "content": str, "source": str, "url": str, ...}],
+            "total": int,
+          }
+        """
+        ...
+
+    def supported_domains(self) -> list[str]:
+        """返回支持的搜索域列表"""
+        ...
