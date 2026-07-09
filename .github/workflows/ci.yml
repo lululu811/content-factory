@@ -101,7 +101,7 @@ jobs:
           cache-dependency-glob: "uv.lock"
 
       - name: Install build tooling
-        run: uv pip install --system build twine
+        run: uv sync --all-packages --dev --extra observability && uv pip install build twine
 
       - name: Build sdist + wheel
         run: uv run python -m build
