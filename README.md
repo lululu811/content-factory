@@ -1,13 +1,50 @@
 # content-factory
 
-> **投研内容 AI 编辑部操作系统** — 组件化、多租户、高可用的投研内容生产平台
+> **A 股投研深度文的生产基础设施** — 17 步 SOP · 18 项合规硬约束 · 三源数据闭环
 >
-> 从选题 → 研究 → 写作 → 合规 → 发布的全流程自动化，支持多编辑风格 A/B 测试
+> 让 AI 用你自己的方法论可靠地产出合规的投研深度文（8000-10000 字），从选题到一键发布公众号。
 
+[![CI](https://img.shields.io/badge/ci-passing-brightgreen.svg)](https://github.com/lululu811/content-factory/actions)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Tests: pytest](https://img.shields.io/badge/tests-9_passed-green.svg)](https://pytest.org)
-[![Components](https://img.shields.io/badge/components-12_registered-blue.svg)](packages/)
+[![uv](https://img.shields.io/badge/uv-workspace-purple.svg)](https://docs.astral.sh/uv/)
+[![Tushare](https://img.shields.io/badge/Tushare-compatible-blue.svg)](https://tushare.pro)
+[![WeChat](https://img.shields.io/badge/微信公众号-API_集成-green.svg)](https://mp.weixin.qq.com)
+
+---
+
+## 你能用它解决什么问题
+
+| 你遇到的问题 | content-factory 怎么帮 |
+|---|---|
+| 每篇深度文从选题到发布要一整天 | 17 步 SOP 把流程拆成 Python 流水线（`bin/cf-new.sh` 一键跑完） |
+| 合规红线踩一条就翻车 | 18 项硬约束 `compliance check` 发布前自动门禁，FAIL 直接拒绝 |
+| 数据源分散（公告 / 行情 / 财报 / RSS / 音视频）| 三源闭环：TrendRadar（选题）+ Tushare / 巨潮（硬数据）+ ZsxqCrawler（机构观点） |
+| AI 写出的东西踩红字词 / 缺免责 | 多编辑风格"严肃派/犀利派"风格指纹 + A/B 测试，发布前合规二次扫描 |
+| 多团队 / 多账号协作 | Schema 级 PostgreSQL 多租户 + 内存后端（开发模式） |
+
+---
+
+## 30 秒体验
+
+```bash
+# 1. clone + 同步(uv workspace 单命令)
+git clone https://github.com/lululu811/content-factory.git
+cd content-factory
+uv sync --all-packages --dev
+
+# 2. 自检
+uv run cf health          # 探活 + 列已注册组件
+
+# 3. 跑一篇端到端 mock 文章(无需任何 API token)
+uv run cf create "我的团队" --topic "AI Agent 行业深度报告"
+
+# 4. 启动 HTTP 服务(管理后台 + REST API)
+uv run cf-server
+# 访问 http://localhost:8000/ 看 Dashboard
+```
+
+未配置 `CF_TUSHARE_TOKEN` / `CF_WECHAT_APPID` 等 token 时，所有外部依赖**自动降级为 mock 模式**，不会报错。完整 `examples/` 见 [examples/](examples/)。
 
 ---
 
@@ -17,7 +54,7 @@
 - **👥 多编辑风格** — 内置"严肃派""犀利派"等 AI 编辑，支持 A/B 测试并行产出
 - **🏢 多租户隔离** — Schema-level 隔离（PostgreSQL）+ 内存后端（开发模式）
 - **🔍 18 项合规检查** — 覆盖标题/数据/免责/时效/引用等全维度
-- **📊 真实数据源** — Tushare（行情/新闻）+ 巨潮（公告）+ TrendRadar（47 个 RSS 热点源）
+- **📊 真实数据源** — Tushare（行情/新闻）+ 巨潮（公告）+ TrendRadar（50 个 RSS 源）+ B 站 + 知识库 RAG
 - **📺 B站一手资料** — 字幕/弹幕/UP主动态/充电问答（本地 bilibili_toolkit 服务）
 - **📡 RSS 热点聚合** — TrendRadar SQLite 直读，AI 风格热点筛选
 - **🧠 知识库 RAG** — hybrid/mmr/vector/bm25 多模式语义检索
@@ -161,10 +198,16 @@ curl -X POST http://localhost:8000/runs \
 
 ## 📖 文档
 
-- **[使用手册](docs/user-guide.md)** — 详细使用指南、API 参考、部署指南
-- **[架构设计](docs/adr/001-component-based-architecture.md)** — 架构决策记录
-- **[整改清单](TODO.md)** — 所有整改项完成情况
+- **[使用手册](docs/user-guide.md)** — API 参考 / 多租户 / 开发新组件 / 生产部署
+- **[架构决策](docs/adr/001-component-based-architecture.md)** — 为什么组件化 / Temporal / schema-level 隔离
 - **[SOP](SOP.md)** — 17 步文章生产 SOP
+- **[数据源层级](docs/data-source-hierarchy.md)** — 主要 / 验证 / 理论支撑 三类
+- **[公众号样式指南](docs/cn-pub-style-guide.md)** — Markdown → 公众号的翻译损失与 10 条规则
+- **[AI interests 映射](docs/ai-interests-mapping.md)** — TrendRadar 15 类兴趣 × 9 大主题
+- **[鲁班工坊打磨报告](docs/luban-reports/content-factory-review-2026-07-05.md)** — 65→78 分提升路径
+- **[整改清单](TODO.md)** — 已完成项 + 下一步迭代
+- **[安全策略](SECURITY.md)** — 支持版本矩阵 + 漏洞报告渠道
+- **[示例](examples/)** — 端到端 quickstart 脚本
 
 ## 🧪 测试
 
@@ -184,7 +227,7 @@ uv run pytest --cov=content_factory_server --cov-report=term-missing
 | 变量名 | 必需 | 说明 |
 |---|---|---|
 | `CF_TUSHARE_TOKEN` | 否 | Tushare API token（未配置时使用 mock） |
-| `CF_TUSHARE_BASE_URL` | 否 | myMCP 兼容端点（如 `https://tt.xiaodefa.cn/mcp/token=xxx`） |
+| `CF_TUSHARE_BASE_URL` | 否 | myMCP 兼容端点（如 `https://<your-myMCP-host>/mcp/token=<your-token>`） |
 | `CF_BIBIGPT_TOKEN` | 否 | BibiGPT API token（视频/音频摘要） |
 | `CF_MINIMAX_API_KEY` | 否 | MiniMax (妙想) API key（图片/视频/音乐/语音） |
 | `CF_MINIMAX_GROUP_ID` | 否 | MiniMax Group ID |

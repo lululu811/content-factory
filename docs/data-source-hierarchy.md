@@ -1,8 +1,15 @@
 # content-factory 数据源层级图(主要 / 验证 / 理论支撑)
 
 > **创建日期**:2026-06-28
+> **最近同步**:2026-07-08 — 与 monorepo v1.0.0 对齐
 > **目的**:content-factory 当前有 11 个数据源,职责重叠。用 3 类层级梳理:**主要数据源**(写文章主要用)+ **验证数据源**(交叉验证/披露)+ **理论支撑**(背景/方法论)。
 > **维护**:加新数据源时,在对应类别加一行;写文章时按这个表选源。
+>
+> ⚠️ 本文档仍引用历史路径 `scripts/<source>.py`(已被 .gitignore 标记本地保留)。
+> 新用户跑命令请改用对应的 Python 包:
+> - `scripts/cninfo-anns.py` → `packages/adapters/cninfo/content_factory_cninfo/__init__.py`
+> - `scripts/industry-kol-scan.py` → 见 [packages/domains/research](../../packages/domains/research/content_factory_research/provider.py)
+> - `scripts/bibi-safe.py` → `packages/adapters/bibigpt/content_factory_bibigpt/__init__.py`
 
 ---
 

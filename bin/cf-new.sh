@@ -6,7 +6,7 @@
 set -e
 SLUG="${1:?usage: cf-new.sh <slug> <topic>}"
 TOPIC="${2:?usage: cf-new.sh <slug> <topic>}"
-CF_ROOT="${CF_ROOT:-/Users/chenlei/content-factory}"
+CF_ROOT="${CF_ROOT:-$HOME/content-factory}"
 RAW_DIR="$CF_ROOT/drafts/raw/$SLUG"
 DRAFT_POST="$CF_ROOT/drafts/posts/$SLUG.md"
 FINAL="$CF_ROOT/publish/final/$SLUG/$SLUG.md"

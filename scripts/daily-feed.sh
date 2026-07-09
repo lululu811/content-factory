@@ -9,7 +9,7 @@ set -e
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$HOME/.local/bin:$PATH"
 
 DATE=$(date +%Y-%m-%d)
-WORKDIR=$HOME/content-factory
+WORKDIR="${CF_ROOT:-$HOME/content-factory}"
 RAW=$WORKDIR/drafts/candidates/feed-$DATE.json
 RAW_META=$WORKDIR/drafts/candidates/feed-$DATE.meta.json
 FILTERED=$WORKDIR/drafts/candidates/filtered-$DATE.json

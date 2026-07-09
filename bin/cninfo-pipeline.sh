@@ -27,7 +27,7 @@ TOPIC="${1:?usage: cninfo-pipeline.sh <topic> <code-list-file> [days]}"
 CODES_FILE="${2:?usage: cninfo-pipeline.sh <topic> <code-list-file> [days]}"
 DAYS="${3:-14}"
 
-CF_ROOT="${CF_ROOT:-/Users/chenlei/content-factory}"
+CF_ROOT="${CF_ROOT:-$HOME/content-factory}"
 RAW_DIR="$CF_ROOT/drafts/raw/$TOPIC"
 CNINFO_DIR="$RAW_DIR/cninfo"
 
