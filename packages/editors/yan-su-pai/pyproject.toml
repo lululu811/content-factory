@@ -1,0 +1,27 @@
+[project]
+name = "content-factory-editor-yan-su-pai"
+version = "1.0.0"
+description = "严肃派编辑组件 - 投研内容 AI 编辑部"
+requires-python = ">=3.11"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+  { name = "chenliitaz", email = "chenliitaz@gmail.com" },
+]
+dependencies = [
+    "content-factory-sdk",
+]
+
+[tool.uv.sources]
+content-factory-sdk = { workspace = true }
+
+# ★ 关键：通过 entry points 注册组件
+[project.entry-points."content_factory.editors"]
+yan-su-pai = "content_factory_editor_yan_su_pai:YanSuEditor"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["content_factory_editor_yan_su_pai"]

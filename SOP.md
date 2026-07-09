@@ -2,6 +2,11 @@
 
 > **本 SOP 是"公众号深度文生产流水线"的完整运作手册，基于 2 篇文章（AI 资源端 + 人形机器人）实际跑通经验沉淀。**
 > **最后更新**：2026-06-20
+>
+> ⚠️ 本 SOP 多次提及 `scripts/compliance-check.py`、`scripts/cn-pub-beautify.py` 等路径。这些脚本已被 `.gitignore` 标记本地保留(monorepo v0.3 起,新工具迁至 `packages/<group>/<name>/content_factory_<name>/`)。
+> 等价入口:
+> - 合规清单:`docs/compliance/checklist.md`(原 `templates/compliance/checklist.md`)
+> - 新数据源接入:见 [CONTRIBUTING.md](./CONTRIBUTING.md) § 加新数据源
 
 ---
 

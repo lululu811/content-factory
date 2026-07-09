@@ -13,7 +13,7 @@ fi
 
 SLUG=$1
 DATE=$(date +%Y-%m-%d)
-WORKDIR=$HOME/content-factory
+WORKDIR="${CF_ROOT:-$HOME/content-factory}"
 SRC_DRAFTS=$WORKDIR/drafts/posts
 SRC_IMAGES=$WORKDIR/publish/images/$SLUG
 FINAL_DIR=$WORKDIR/publish/final/$SLUG

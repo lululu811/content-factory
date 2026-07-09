@@ -8,7 +8,7 @@ set -e
 TS_CODE="${1:?usage: cf-new-stock.sh <股票代码> [公司名]}"
 COMPANY_NAME="${2:-$(echo $TS_CODE | grep -oE '^[0-9]+')}"
 
-CF_ROOT="${CF_ROOT:-/Users/chenlei/content-factory}"
+CF_ROOT="${CF_ROOT:-$HOME/content-factory}"
 RAW_DIR="$CF_ROOT/drafts/raw/stock-$TS_CODE"
 DRAFT_POST="$CF_ROOT/drafts/posts/stock-$TS_CODE.md"
 FINAL="$CF_ROOT/publish/final/stock-$TS_CODE/stock-$TS_CODE.md"

@@ -1,102 +1,49 @@
 # Security Policy
 
-## Supported Versions
+## 支持版本
 
-| Version | Supported          |
-|---------|--------------------|
-| 1.0.x   | ✅ 完整支持        |
-| 0.3.x   | ⚠️ 仅严重安全更新 |
-| < 0.3   | ❌ 不再支持        |
+| 版本 | 支持状态 |
+|---|---|
+| `1.0.x` | ✅ 完整支持(安全更新 + 兼容性修复) |
+| `0.3.x` | ⚠️ 仅严重安全更新 |
+| `< 0.3` | ❌ 不再支持 |
 
-## Reporting a Vulnerability
+## 漏洞报告
 
-**请勿在 GitHub issues 公开披露安全漏洞。**
+`content-factory` 是投研类内容生产工具,**可能涉及微信公众号 access_token / 数据源 token 等敏感凭证**。如果你发现安全漏洞,请通过 [GitHub Security Advisories](https://github.com/lululu811/content-factory/security/advisories) 私下提交,**不要**在公开 issue 里披露细节。
 
-请通过以下方式私下报告:
-1. **GitHub Security Advisories**: https://github.com/lululu811/content-factory/security/advisories/new
-2. **Email**: (请在 SECURITY.md 后续版本添加)
+报告应包含:
 
-报告内容请包含:
-- 漏洞类型(脚本注入 / 命令执行 / 路径遍历 / etc.)
-- 受影响文件 + 行号
-- 触发条件(输入示例)
-- 潜在影响(数据泄露 / 代码执行 / etc.)
-- 修复建议(可选)
+- 漏洞位置(文件路径 / 行号)
+- 触发条件(请求样本 / 输入数据)
+- 影响范围(数据泄露 / 越权 / RCE 等)
+- 复现步骤
 
-## Response Time
+## 响应承诺
 
-- **48 小时内**确认收到
-- **7 天内**评估严重性
-- **30 天内**发布修复(高危漏洞优先)
+| 阶段 | 时间 |
+|---|---|
+| 初步确认 | 48 小时内 |
+| 严重漏洞修复 | 30 天内(高危优先) |
+| 一般漏洞修复 | 下一发布周期 |
+| 漏洞公告 | 修复发布后 7 天内 |
 
-## Security Considerations
+## 已知信任边界
 
-### 本项目安全风险面
+`content-factory` 默认在本地运行,**不直接暴露公网**。生产部署请参考 [docs/user-guide.md §生产部署](docs/user-guide.md),务必:
 
-content-factory 是**本地工具 + 文档仓库**,不是网络服务,所以风险面有限:
+- 反向代理(Nginx / Caddy)套 TLS
+- `CF_DATABASE_URL` 强密码 + 内网访问
+- 微信公众号 AppID / Secret 走环境变量,**不**入 `.env` 提交
+- `CF_TRACE_CONSOLE` 生产环境务必设为 `0`,trace 可能含 token 拼接
 
-1. **脚本执行风险**:`scripts/*.py / *.sh` 会在你机器上运行
-   - ⚠️ 不要直接 `curl ... | bash` 跑未审计脚本
-   - ✅ 跑前先 `cat` 看一下,确认无 `os.system` / `subprocess` 可疑调用
+## 已禁用的危险操作
 
-2. **数据源风险**:抓 myMCP / cninfo / TrendRadar 时
-   - ⚠️ 不要把 API token 写进 frontmatter(用环境变量)
-   - ✅ 内部 API token 用 `~/.bashrc` / `~/.zshrc` 注入
+- ❌ `scripts/*.sh` / `bin/*.sh` 不应 `curl ... | bash` 直接跑,务必先 `cat` 一遍
+- ❌ `.gitignore` 已屏蔽 `.env` / `*.local` / `drafts/` / `publish/` / `tracking/` / `logs/`,不要绕过
+- ❌ 公告 PDF 文件大(单篇 100KB-5MB),仅 commit JSON 元数据,PDF 自动忽略
+- ❌ 不要把真实数据源 token commit 到 `templates/` / `docs/` / `examples/`
 
-3. **Git 提交安全**:
-   - ⚠️ 不要 commit `.env` / API key / 个人信息
-   - ✅ 已有 `.gitignore` 保护(OS/Node/Python cache/secrets)
+## 致谢
 
-### 已知安全配置
-
-```gitignore
-# .gitignore 已保护
-.env
-.env.local
-*.local
-```
-
-## Best Practices
-
-### 1. 跑脚本前先看
-
-```bash
-# 总是这样:
-cat scripts/<name>.py | head -50
-python3 scripts/<name>.py --help
-```
-
-### 2. API token 用环境变量
-
-```python
-# 好
-import os
-API_TOKEN = os.environ.get('MY_API_TOKEN')
-
-# 坏
-API_TOKEN = "sk-abc123..."  # 会进 .git 历史
-```
-
-### 3. 配置文件不进 .git
-
-```bash
-# 放 ~/.config/ 不放项目里
-~/.config/content-factory/config.yaml
-```
-
-### 4. 定期审计依赖
-
-```bash
-pip list --outdated
-pip install --upgrade <package>
-```
-
-## Disclosure Policy
-
-- 收到漏洞报告后,我们会先修复,再发版
-- 安全公告发到 GitHub Security Advisories
-- 严重漏洞会发 [GitHub Security Advisory](https://github.com/lululu811/content-factory/security/advisories)
-
-## Acknowledgments
-
-感谢所有负责任披露漏洞的研究者。
+重大漏洞报告者将在修复发布说明致谢(除非要求匿名)。详见 [CHANGELOG.md](CHANGELOG.md)。

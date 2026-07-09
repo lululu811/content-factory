@@ -3,6 +3,10 @@
 > **为什么需要**:Markdown 在公众号编辑器里部分语法不支持(表格 / 代码块 / 部分 emoji),
 > 直接复制粘贴会让文章视觉割裂、信息密度高但**呼吸感差**。
 > 这份指南是 9 篇深度文实战沉淀的"公众号友好"排版规则。
+>
+> ⚠️ 本指南提及的 `scripts/cn-pub-beautify.py` 已被 monorepo v1.0.0 标记本地保留。
+> 等价功能未来迁至 [packages/domains/image](../../packages/domains/image/content_factory_image/__init__.py)。
+> 自动化可临时跑 `uv run python -c "from content_factory_image import beautify_article; beautify_article('posts/<slug>.md')"`(功能未上架前请用 markdown 手工美化)。
 
 ---
 
