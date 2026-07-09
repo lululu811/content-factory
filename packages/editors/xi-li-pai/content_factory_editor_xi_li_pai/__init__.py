@@ -52,9 +52,7 @@ class XiLiEditor(EditorProvider):
             },
         )
 
-    async def draft_article(
-        self, topic: Topic, context: RunContext
-    ) -> Draft:
+    async def draft_article(self, topic: Topic, context: RunContext) -> Draft:
         """
         根据选题生成草稿
         犀利派风格：开门见山、直抒胸臆、不绕弯子
@@ -63,7 +61,7 @@ class XiLiEditor(EditorProvider):
 
 ## 开门见山
 
-说人话就是，{topic.description or '这事没那么简单'}。别装了，大家都心知肚明，只是没人敢说而已。
+说人话就是，{topic.description or "这事没那么简单"}。别装了，大家都心知肚明，只是没人敢说而已。
 
 ## 真相是
 

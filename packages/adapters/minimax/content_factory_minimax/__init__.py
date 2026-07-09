@@ -19,7 +19,6 @@ from typing import Any
 
 import httpx
 import structlog
-
 from content_factory_sdk.spi import ContentGeneratorProvider
 
 logger = structlog.get_logger()
@@ -42,7 +41,9 @@ class MiniMaxGenerator(ContentGeneratorProvider):
         if self.api_key and self.group_id:
             logger.info("minimax_initialized", group_id=self.group_id[:6] + "***")
         else:
-            logger.warning("minimax_no_credentials", msg="未配置 CF_MINIMAX_API_KEY/GROUP_ID，mock 模式")
+            logger.warning(
+                "minimax_no_credentials", msg="未配置 CF_MINIMAX_API_KEY/GROUP_ID，mock 模式"
+            )
 
     @property
     def is_mock(self) -> bool:
@@ -138,7 +139,9 @@ class MiniMaxGenerator(ContentGeneratorProvider):
             "metadata": data,
         }
 
-    async def generate_speech(self, text: str, voice_id: str = "default", **kwargs) -> dict[str, Any]:
+    async def generate_speech(
+        self, text: str, voice_id: str = "default", **kwargs
+    ) -> dict[str, Any]:
         """语音合成 (TTS)"""
         if self.is_mock:
             return {
@@ -179,4 +182,6 @@ class MiniMaxGenerator(ContentGeneratorProvider):
             voice_id = extra.pop("voice_id", "default")
             return await self.generate_speech(prompt, voice_id, **extra)
         else:
-            raise ValueError(f"Unsupported type: {content_type}. Supported: {self.supported_types()}")
+            raise ValueError(
+                f"Unsupported type: {content_type}. Supported: {self.supported_types()}"
+            )

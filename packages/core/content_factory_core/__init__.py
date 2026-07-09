@@ -4,6 +4,13 @@ content-factory-core: 核心运行时
 提供领域模型、事件 schema、配置管理等基础设施。
 """
 
+from content_factory_core.config import Settings
+from content_factory_core.events import (
+    DomainEvent,
+    DraftReady,
+    ResearchCompleted,
+    TopicApproved,
+)
 from content_factory_core.models import (
     Article,
     Draft,
@@ -12,13 +19,6 @@ from content_factory_core.models import (
     Tenant,
     Topic,
 )
-from content_factory_core.events import (
-    DomainEvent,
-    TopicApproved,
-    ResearchCompleted,
-    DraftReady,
-)
-from content_factory_core.config import Settings
 from content_factory_core.tenant_manager import (
     PostgreSQLTenantManager,
     TenantManager,
@@ -26,7 +26,7 @@ from content_factory_core.tenant_manager import (
     get_tenant_manager,
 )
 
-__version__ = "0.3.0"
+__version__ = "1.0.0"
 
 __all__ = [
     # Models

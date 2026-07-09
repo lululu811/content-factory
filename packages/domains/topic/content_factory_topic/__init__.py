@@ -4,9 +4,6 @@
 提供选题发现、评分、筛选等功能。
 """
 
-from typing import Any
-from uuid import uuid4
-
 from content_factory_core.events import TopicApproved
 from content_factory_core.models import RunContext, Topic
 from content_factory_sdk.events import EventBus

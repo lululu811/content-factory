@@ -14,6 +14,7 @@ B站一手资料数据源适配器
 
 注意: 字幕/弹幕下载为异步任务，本适配器会自动轮询任务状态。
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -22,7 +23,6 @@ from typing import Any
 
 import httpx
 import structlog
-
 from content_factory_sdk.spi import DataSourceProvider
 
 logger = structlog.get_logger()
@@ -63,17 +63,13 @@ class BilibiliDataSource(DataSourceProvider):
             logger.error("bilibili_fetch_news_failed", error=str(e))
             return []
 
-    async def fetch_announcement(
-        self, symbol: str, days: int = 30
-    ) -> list[dict[str, Any]]:
+    async def fetch_announcement(self, symbol: str, days: int = 30) -> list[dict[str, Any]]:
         """B站不支持公告查询"""
         return []
 
     # ---------- B站专属方法 ----------
 
-    async def fetch_video_subtitle(
-        self, bvid_or_url: str, lang: str = "zh-CN"
-    ) -> dict[str, Any]:
+    async def fetch_video_subtitle(self, bvid_or_url: str, lang: str = "zh-CN") -> dict[str, Any]:
         """
         获取视频字幕 markdown
 
@@ -92,9 +88,7 @@ class BilibiliDataSource(DataSourceProvider):
         result["bvid"] = self._extract_bvid(bvid_or_url)
         return result
 
-    async def fetch_danmaku(
-        self, bvid_or_url: str, segment_index: int = 1
-    ) -> dict[str, Any]:
+    async def fetch_danmaku(self, bvid_or_url: str, segment_index: int = 1) -> dict[str, Any]:
         """
         获取视频弹幕
 
@@ -109,9 +103,7 @@ class BilibiliDataSource(DataSourceProvider):
         result["bvid"] = self._extract_bvid(bvid_or_url)
         return result
 
-    async def fetch_up_dynamics(
-        self, uid: str, download_images: bool = False
-    ) -> dict[str, Any]:
+    async def fetch_up_dynamics(self, uid: str, download_images: bool = False) -> dict[str, Any]:
         """
         获取 UP主动态（同步 API，无需轮询）
 
@@ -140,16 +132,12 @@ class BilibiliDataSource(DataSourceProvider):
 
     # ---------- 内部工具 ----------
 
-    async def _request(
-        self, method: str, path: str, **kwargs
-    ) -> dict[str, Any]:
+    async def _request(self, method: str, path: str, **kwargs) -> dict[str, Any]:
         if self._client is None or self._client.is_closed:
             headers = {}
             if self.api_key:
                 headers["X-API-Key"] = self.api_key
-            self._client = httpx.AsyncClient(
-                base_url=self.base_url, timeout=30.0, headers=headers
-            )
+            self._client = httpx.AsyncClient(base_url=self.base_url, timeout=30.0, headers=headers)
         try:
             resp = await self._client.request(method, path, **kwargs)
             resp.raise_for_status()
@@ -161,8 +149,7 @@ class BilibiliDataSource(DataSourceProvider):
                 hint="请启动 bilibili_toolkit 服务: uvicorn bilibili_toolkit.server:app --port 8100",
             )
             raise RuntimeError(
-                f"无法连接 B站服务 {self.base_url}。"
-                "请先启动 bilibili_toolkit 服务。"
+                f"无法连接 B站服务 {self.base_url}。请先启动 bilibili_toolkit 服务。"
             ) from e
 
     async def _post_task(self, path: str, payload: dict) -> str:

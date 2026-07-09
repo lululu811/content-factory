@@ -46,9 +46,7 @@ class YanSuEditor(EditorProvider):
             },
         )
 
-    async def draft_article(
-        self, topic: Topic, context: RunContext
-    ) -> Draft:
+    async def draft_article(self, topic: Topic, context: RunContext) -> Draft:
         """
         根据选题生成草稿
 
@@ -58,7 +56,7 @@ class YanSuEditor(EditorProvider):
 
 ## 核心观点
 
-值得注意的的是，{topic.description or '这一主题值得深入分析'}。
+值得注意的的是，{topic.description or "这一主题值得深入分析"}。
 
 ## 数据支撑
 

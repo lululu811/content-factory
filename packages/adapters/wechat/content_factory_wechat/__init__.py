@@ -12,13 +12,13 @@
 
 未配置时使用 mock 实现（用于开发/测试）。
 """
+
 import os
 import time
 from typing import Any
 
 import httpx
 import structlog
-
 from content_factory_core.events import ArticlePublished
 from content_factory_core.models import Article
 from content_factory_sdk.spi import PublisherProvider

@@ -1,6 +1,6 @@
 [project]
 name = "content-factory-workspace"
-version = "0.3.0"
+version = "1.0.0"
 description = "投研内容 AI 编辑部操作系统 - monorepo workspace"
 requires-python = ">=3.11"
 readme = "README.md"
@@ -27,13 +27,14 @@ dev = [
     "ruff>=0.5.0",
     "mypy>=1.10.0",
     "pytest-asyncio>=1.4.0",
+    "pre-commit>=3.7.0",
 ]
 
 # ── Ruff ──
 [tool.ruff]
 line-length = 100
-target-version = "py39"
-src = ["src", "tests"]
+target-version = "py311"
+src = ["packages"]
 
 [tool.ruff.lint]
 select = [
@@ -45,11 +46,16 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["B011"]
-"src/content_factory/compliance/checker.py" = ["E501", "B904"]  # legacy file
-"src/content_factory/images/generator.py" = ["E501"]  # legacy file
-"src/content_factory/research/*.py" = ["E501", "B904"]  # legacy files
-"src/content_factory/pipeline/scorer.py" = ["E501"]  # legacy file
+"packages/domains/compliance/content_factory_compliance/checker.py" = ["E501", "B904"]  # legacy file
+"packages/domains/image/content_factory_image/generator.py" = ["E501"]  # legacy file
+"packages/domains/research/content_factory_research/*.py" = ["E501", "B904"]  # legacy files
+"packages/domains/pipeline/content_factory_pipeline/scorer.py" = ["E501"]  # legacy file
+# Temporal workflow 必须用 try-import fallback(未装 temporalio 时降级),
+# 不可避免 E402(module-level import not at top of file)
+"packages/server/content_factory_server/temporal_workflows.py" = ["E402", "B904", "UP042"]
+# 适配器 mock / fallback 路径允许少量 unused import 兜底(F401)与
+# zipped-without-explicit-strict(B905,数据源 pairing 通常需要宽容)
+"packages/adapters/*/content_factory_*/*.py" = ["F401", "B905"]  
 
 [tool.ruff.format]
 quote-style = "double"
@@ -57,23 +63,25 @@ indent-style = "space"
 
 # ── mypy ──
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 strict = false  # Legacy scripts aren't strict-typed yet
 warn_unused_configs = true
 ignore_missing_imports = true
-files = ["src/content_factory"]
+files = ["packages"]
 
 [[tool.mypy.overrides]]
-module = "content_factory.cninfo.*"
+module = "content_factory_cninfo.*"
 strict = true
-[[tool.mypy.overrides]]
-module = "tests.*"
-disallow_untyped_defs = false
+# 跨包继承 SPI 时,sdk 在非 strict 下会被推断成 Any,触发 misc 误报
+disable_error_code = ["misc", "no-untyped-call"]  
 
 # ── pytest ──
+# 集成测试放在仓库根目录(test_smoke.py / test_e2e.py / test_api.py /
+# test_cli.py / test_multi_editor.py / test_compliance_migration.py)。
+# 单独子包的单测进 packages/<name>/tests/ 后,在该子包本地 pytest 跑。
 [tool.pytest.ini_options]
 minversion = "7.0"
-testpaths = ["tests"]
+testpaths = ["."]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
@@ -82,7 +90,27 @@ addopts = [
   "-ra",
   "--strict-markers",
   "--strict-config",
-  "--cov=content_factory",
+  "--cov=content_factory_core",
+  "--cov=content_factory_sdk",
+  "--cov=content_factory_server",
+  "--cov=content_factory_cli",
+  "--cov=content_factory_topic",
+  "--cov=content_factory_research",
+  "--cov=content_factory_writing",
+  "--cov=content_factory_compliance",
+  "--cov=content_factory_image",
+  "--cov=content_factory_publish",
+  "--cov=content_factory_tushare",
+  "--cov=content_factory_cninfo",
+  "--cov=content_factory_wechat",
+  "--cov=content_factory_bibigpt",
+  "--cov=content_factory_minimax",
+  "--cov=content_factory_datapro",
+  "--cov=content_factory_bilibili",
+  "--cov=content_factory_trendradar",
+  "--cov=content_factory_knowledge",
+  "--cov=content_factory_yan_su_pai",
+  "--cov=content_factory_xi_li_pai",
   "--cov-report=term-missing",
   "--cov-report=html",
 ]
@@ -93,13 +121,15 @@ filterwarnings = [
 
 # ── Coverage ──
 [tool.coverage.run]
-source = ["src/content_factory"]
+source = ["packages"]
 omit = [
-  "*/tests/*",
   "*/.venv/*",
+  "*/tests/*",
+  "*/__pycache__/*",
 ]
 
 [tool.coverage.report]
+fail_under = 40  # 当前整体覆盖率约 52%,门槛设 40 给新代码留空间;目标 60+
 exclude_lines = [
   "pragma: no cover",
   "raise NotImplementedError",

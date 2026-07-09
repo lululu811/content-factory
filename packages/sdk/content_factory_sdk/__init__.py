@@ -5,24 +5,24 @@ content-factory-sdk: 平台 SDK
 组件开发者依赖此包来实现自己的组件。
 """
 
-from content_factory_sdk.spi import (
-    DataSourceProvider,
-    EditorProvider,
-    PublisherProvider,
-    ComplianceProvider,
-    ContentGeneratorProvider,
-    SearchProvider,
+from content_factory_sdk.events import (
+    EventBus,
+    InMemoryEventBus,
 )
 from content_factory_sdk.registry import (
     ComponentRegistry,
     discover_components,
 )
-from content_factory_sdk.events import (
-    EventBus,
-    InMemoryEventBus,
+from content_factory_sdk.spi import (
+    ComplianceProvider,
+    ContentGeneratorProvider,
+    DataSourceProvider,
+    EditorProvider,
+    PublisherProvider,
+    SearchProvider,
 )
 
-__version__ = "0.3.0"
+__version__ = "1.0.0"
 
 __all__ = [
     # SPI

@@ -1,6 +1,6 @@
 [project]
 name = "content-factory-bilibili"
-version = "0.3.0"
+version = "1.0.0"
 description = "B站一手资料适配器（字幕/弹幕/动态/充电问答）- 投研内容 AI 编辑部"
 requires-python = ">=3.11"
 readme = "README.md"

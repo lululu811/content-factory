@@ -6,6 +6,6 @@
 
 from content_factory_research.provider import DefaultResearchProvider
 
-__version__ = "0.3.0"
+__version__ = "1.0.0"
 
 __all__ = ["DefaultResearchProvider"]

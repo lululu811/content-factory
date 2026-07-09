@@ -6,6 +6,6 @@ content-factory-server: HTTP API 服务
 
 from content_factory_server.app import create_app
 
-__version__ = "0.3.0"
+__version__ = "1.0.0"
 
 __all__ = ["create_app"]

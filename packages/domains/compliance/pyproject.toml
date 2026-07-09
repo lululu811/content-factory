@@ -1,6 +1,6 @@
 [project]
 name = "content-factory-compliance"
-version = "0.3.0"
+version = "1.0.0"
 description = "合规检查领域组件 - 投研内容 AI 编辑部"
 requires-python = ">=3.11"
 readme = "README.md"

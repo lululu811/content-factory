@@ -7,12 +7,12 @@ BibiGPT 数据源适配器
 OpenAPI: https://bibigpt.co/api/openapi.json
 Base URL: https://api.bibigpt.co/api
 """
+
 import os
 from typing import Any
 
 import httpx
 import structlog
-
 from content_factory_sdk.spi import DataSourceProvider
 
 logger = structlog.get_logger()
