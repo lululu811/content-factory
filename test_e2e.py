@@ -114,10 +114,7 @@ async def test_end_to_end():
         # 因为写服务里已有 'compliance_result["passed"] == False' 立即 return 的逻辑
         # 但 e2e 直接调用 .check() 暴露了 by-design fail,这里我们接受并演示
         print("  ⚠️ 合规未通过(测试 mock 草稿无 frontmatter 时正常触发)")
-        print(
-            "  → production 会在 publish --strict 阶段阻断,这是 by-design 行为,"
-            " 不是 bug"
-        )
+        print("  → production 会在 publish --strict 阶段阻断,这是 by-design 行为, 不是 bug")
         # 这里 article 不会被创建,后续步骤跳过,test 仍 PASS
         assert len(compliance_result["issues"]) > 0, (
             "测试逻辑错误: 失败应至少报告 1 个 issue 才能算'合规阻断演示'"
