@@ -70,17 +70,18 @@ node_modules/
 # ============================================
 
 # ── Private data(本地保留)──
-drafts/posts/
-drafts/candidates/
-drafts/outlines/
-drafts/raw/
-drafts/research/
-publish/
-tracking/
-logs/
-reports/
-archives/
-serenity-skill/
+# 用 leading slash 锁定到仓库根,避免误伤 packages/domains/publish 等同名子目录
+/drafts/posts/
+/drafts/candidates/
+/drafts/outlines/
+/drafts/raw/
+/drafts/research/
+/publish/
+/tracking/
+/logs/
+/reports/
+/archives/
+/serenity-skill/
 
 # ── Legacy dbs-content-system 7 目录(早期试错,2026/6/29 已 ignore)──
 00-规则与索引/
