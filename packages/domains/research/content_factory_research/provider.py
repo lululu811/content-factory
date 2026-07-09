@@ -5,7 +5,6 @@
 """
 
 from typing import Any
-from uuid import uuid4
 
 from content_factory_core.events import ResearchCompleted
 from content_factory_core.models import RunContext, Topic
@@ -54,10 +53,12 @@ class DefaultResearchProvider:
 
             except Exception as e:
                 # 记录错误但不中断
-                research_data.setdefault("errors", []).append({
-                    "source": source.__class__.__name__,
-                    "error": str(e),
-                })
+                research_data.setdefault("errors", []).append(
+                    {
+                        "source": source.__class__.__name__,
+                        "error": str(e),
+                    }
+                )
 
         return research_data
 

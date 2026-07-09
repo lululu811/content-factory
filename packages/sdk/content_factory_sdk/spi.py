@@ -5,13 +5,12 @@ SPI (Service Provider Interface)
 这些接口是稳定的，一旦发布只能加不能改（语义化版本）。
 """
 
-from typing import Any, Protocol, Union, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 from content_factory_core.events import ArticlePublished
 from content_factory_core.models import (
     Article,
     Draft,
-    Editor,
     RunContext,
     Topic,
 )
@@ -29,9 +28,7 @@ class DataSourceProvider(Protocol):
         """获取新闻"""
         ...
 
-    async def fetch_announcement(
-        self, symbol: str, days: int = 30
-    ) -> list[dict[str, Any]]:
+    async def fetch_announcement(self, symbol: str, days: int = 30) -> list[dict[str, Any]]:
         """获取公告"""
         ...
 
@@ -40,9 +37,7 @@ class DataSourceProvider(Protocol):
 class EditorProvider(Protocol):
     """编辑组件接口"""
 
-    async def draft_article(
-        self, topic: Topic, context: RunContext
-    ) -> Draft:
+    async def draft_article(self, topic: Topic, context: RunContext) -> Draft:
         """根据选题和上下文生成草稿"""
         ...
 
@@ -80,7 +75,7 @@ class PublisherProvider(Protocol):
     推荐实现为返回 ArticlePublished（带 publish_url 属性）。
     """
 
-    async def publish(self, article: Article) -> Union[dict[str, Any], ArticlePublished]:
+    async def publish(self, article: Article) -> dict[str, Any] | ArticlePublished:
         """
         发布文章
 

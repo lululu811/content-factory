@@ -1,4 +1,3 @@
-import pytest
 #!/usr/bin/env python3
 """
 冒烟测试套件
@@ -10,6 +9,7 @@ import asyncio
 import sys
 from uuid import uuid4
 
+import pytest
 from content_factory_core.models import RunContext, Tenant, Topic
 from content_factory_sdk import InMemoryEventBus, discover_components
 
@@ -23,7 +23,7 @@ def test_component_discovery():
     registry = discover_components()
     components = registry.list_components()
 
-    print(f"发现的组件:")
+    print("发现的组件:")
     for category, names in components.items():
         print(f"  {category}: {names}")
 
@@ -71,8 +71,8 @@ async def test_compliance_check():
     print("冒烟测试 3: 合规检查")
     print("=" * 70)
 
-    from content_factory_core.models import Draft
     from content_factory_compliance import DefaultComplianceProvider
+    from content_factory_core.models import Draft
 
     provider = DefaultComplianceProvider()
     draft = Draft(
@@ -144,13 +144,13 @@ async def test_full_workflow():
     print("冒烟测试 6: 完整工作流")
     print("=" * 70)
 
-    from content_factory_topic import TopicProvider
-    from content_factory_research import DefaultResearchProvider
-    from content_factory_writing import WritingProvider
     from content_factory_compliance import DefaultComplianceProvider
     from content_factory_image import ImageProvider
     from content_factory_publish import PublishProvider
+    from content_factory_research import DefaultResearchProvider
+    from content_factory_topic import TopicProvider
     from content_factory_tushare import TushareDataSource
+    from content_factory_writing import WritingProvider
 
     event_bus = InMemoryEventBus()
     registry = discover_components()
@@ -174,9 +174,9 @@ async def test_full_workflow():
     writing_provider = WritingProvider(registry=registry, event_bus=event_bus)
     draft = await writing_provider.write_article(topic, "yan-su-pai", context)
 
-    # 合规
+    # 合规(mock 草稿预期会触发 FAIL,真实场景下补 frontmatter 通过)
     compliance_provider = DefaultComplianceProvider()
-    result = await compliance_provider.check(draft)
+    _compliance = await compliance_provider.check(draft)
 
     # 发布
     article = await compliance_provider.approve(draft)
@@ -229,6 +229,7 @@ async def main():
             failed += 1
             print(f"✗ {name} 测试异常: {e}")
             import traceback
+
             traceback.print_exc()
 
     print("\n" + "=" * 70)

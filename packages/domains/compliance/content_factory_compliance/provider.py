@@ -4,17 +4,14 @@
 实现 ComplianceProvider SPI 接口，提供 17 项合规检查（含 17b）。
 """
 
-import json
 import re
 from datetime import date, datetime
 from typing import Any
-from uuid import UUID
 
 from content_factory_core.models import Article, Draft
 from content_factory_sdk.spi import ComplianceProvider
 
 from content_factory_compliance.models import CheckStatus, ComplianceCheck, ComplianceResult
-
 
 # ── 常量定义 ──
 
@@ -38,6 +35,7 @@ TICKER_PATTERNS = [
 
 # ── 检查函数 ──
 
+
 def check_1_title(content: str) -> tuple[CheckStatus, str]:
     """A1. 标题 ≤ 30 字 + 含反共识钩子"""
     m = re.search(r"^# (.+)$", content, re.MULTILINE)
@@ -46,22 +44,62 @@ def check_1_title(content: str) -> tuple[CheckStatus, str]:
     title = m.group(1).strip()
     if len(title) > MAX_TITLE_CHARS:
         return CheckStatus.FAIL, f"标题 {len(title)} 字,超过 30 字限制"
-    hooks = ["反共识", "真实", "未必", "不是", "不在", "别再", "误区", "陷阱", "意外", "错位", "低估", "高估", "误读", "错判", "假的", "真的", "真相", "残酷", "清醒"]
+    hooks = [
+        "反共识",
+        "真实",
+        "未必",
+        "不是",
+        "不在",
+        "别再",
+        "误区",
+        "陷阱",
+        "意外",
+        "错位",
+        "低估",
+        "高估",
+        "误读",
+        "错判",
+        "假的",
+        "真的",
+        "真相",
+        "残酷",
+        "清醒",
+    ]
     if not any(h in title for h in hooks):
-        return CheckStatus.WARN, f"标题缺少反共识钩子关键词"
+        return CheckStatus.WARN, "标题缺少反共识钩子关键词"
     return CheckStatus.PASS, f"标题 {len(title)} 字 + 含反共识钩子"
 
 
 def check_2_companies_total(content: str) -> tuple[CheckStatus, str]:
     """A2. 候选公司 ≥ 20 个,5 分类齐全"""
-    m = re.search(r"^##[^\n]*公司\s*5\s*分类[^\n]*\n(.*?)(?=^##\s)", content, re.DOTALL | re.MULTILINE)
+    m = re.search(
+        r"^##[^\n]*公司\s*5\s*分类[^\n]*\n(.*?)(?=^##\s)", content, re.DOTALL | re.MULTILINE
+    )
     if not m:
         m = re.search(r"^##[^\n]*5\s*分类[^\n]*\n(.*?)(?=^##\s)", content, re.DOTALL | re.MULTILINE)
     if not m:
         return CheckStatus.FAIL, '找不到"公司 5 分类"章节'
     section = m.group(1)
     companies = re.findall(r"\*\*([^*\d]+?)\*\*", section)
-    companies = [c for c in companies if c not in {"强证据", "中证据", "弱证据", "强", "中", "弱", "Controls", "Supplies", "Benefits", "Weak control", "Mainly has a story", "稀缺层"}]
+    companies = [
+        c
+        for c in companies
+        if c
+        not in {
+            "强证据",
+            "中证据",
+            "弱证据",
+            "强",
+            "中",
+            "弱",
+            "Controls",
+            "Supplies",
+            "Benefits",
+            "Weak control",
+            "Mainly has a story",
+            "稀缺层",
+        }
+    ]
     unique = {c.strip() for c in companies if len(c.strip()) > 1}
     if len(unique) < MIN_COMPANIES_TOTAL:
         return CheckStatus.FAIL, f"候选公司 {len(unique)} 个,需 ≥ {MIN_COMPANIES_TOTAL}"
@@ -70,8 +108,16 @@ def check_2_companies_total(content: str) -> tuple[CheckStatus, str]:
 
 def check_3_weak_story_have_tickers(content: str) -> tuple[CheckStatus, str]:
     """A3. 9.4 Weak / 9.5 Story 两类必须有具体股票代码"""
-    weak_m = re.search(r"(?:###?\s*(?:7\.4|8\.4|9\.4|Has weak control))[^\n]*\n(.*?)(?=\n###?\s|\n##\s|\Z)", content, re.DOTALL | re.MULTILINE)
-    story_m = re.search(r"(?:###?\s*(?:7\.5|8\.5|9\.5|Mainly has a story))[^\n]*\n(.*?)(?=\n###?\s|\n##\s|\Z)", content, re.DOTALL | re.MULTILINE)
+    weak_m = re.search(
+        r"(?:###?\s*(?:7\.4|8\.4|9\.4|Has weak control))[^\n]*\n(.*?)(?=\n###?\s|\n##\s|\Z)",
+        content,
+        re.DOTALL | re.MULTILINE,
+    )
+    story_m = re.search(
+        r"(?:###?\s*(?:7\.5|8\.5|9\.5|Mainly has a story))[^\n]*\n(.*?)(?=\n###?\s|\n##\s|\Z)",
+        content,
+        re.DOTALL | re.MULTILINE,
+    )
     issues = []
     for label, mm in [("Weak", weak_m), ("Story", story_m)]:
         if not mm:
@@ -142,13 +188,11 @@ def check_7_data_freshness(content: str) -> tuple[CheckStatus, str]:
 
 def check_8_disclaimer(content: str) -> tuple[CheckStatus, str]:
     """B8. 免责声明"""
-    keywords = ["不构成投资建议", "不构成推荐", "研究案例", "免责声明"]
-    found = [k for k in keywords if k in content]
     if "免责声明" not in content:
         return CheckStatus.FAIL, '找不到"免责声明"标题'
     if "研究案例" not in content and "不构成推荐" not in content:
-        return CheckStatus.WARN, f"免责声明已加,但缺标注"
-    return CheckStatus.PASS, f"免责声明已加"
+        return CheckStatus.WARN, "免责声明已加,但缺标注"
+    return CheckStatus.PASS, "免责声明已加"
 
 
 def check_9_evidence_levels(content: str) -> tuple[CheckStatus, str]:
@@ -157,9 +201,12 @@ def check_9_evidence_levels(content: str) -> tuple[CheckStatus, str]:
     has_yellow = "🟡" in content
     has_red = "🔴" in content
     missing = []
-    if not has_green: missing.append("🟢")
-    if not has_yellow: missing.append("🟡")
-    if not has_red: missing.append("🔴")
+    if not has_green:
+        missing.append("🟢")
+    if not has_yellow:
+        missing.append("🟡")
+    if not has_red:
+        missing.append("🔴")
     if missing:
         return CheckStatus.WARN, f"证据等级缺: {' '.join(missing)}"
     return CheckStatus.PASS, "🟢🟡🔴 三档齐全"
@@ -167,7 +214,10 @@ def check_9_evidence_levels(content: str) -> tuple[CheckStatus, str]:
 
 def check_10_sources(content: str) -> tuple[CheckStatus, str]:
     """B10. 强结论有可查来源"""
-    green_with_source = re.findall(r"🟢[^\n]*\[?[🟢L\d\d?]?[^\n]*?(?:报告|公告|财报|海关|监管|招股书|问询函|互动易|海关数据|ID|号)", content)
+    green_with_source = re.findall(
+        r"🟢[^\n]*\[?[🟢L\d\d?]?[^\n]*?(?:报告|公告|财报|海关|监管|招股书|问询函|互动易|海关数据|ID|号)",
+        content,
+    )
     n = len(green_with_source)
     if n < 3:
         return CheckStatus.WARN, f"🟢 强证据来源标注 {n} 处,可能不够详细"
@@ -191,7 +241,22 @@ def check_11_high_risk_words(content: str) -> tuple[CheckStatus, str]:
 
 def check_12_time_window(content: str) -> tuple[CheckStatus, str]:
     """B12. 短期判断有时间窗口"""
-    keywords = ["6 个月", "12 个月", "3-6 个月", "6-12 个月", "3 个月", "季度", "2026 H1", "2026 H2", "2026/Q1", "2026/Q2", "2026/Q3", "未来 6 个月", "未来 12 个月", "窗口"]
+    keywords = [
+        "6 个月",
+        "12 个月",
+        "3-6 个月",
+        "6-12 个月",
+        "3 个月",
+        "季度",
+        "2026 H1",
+        "2026 H2",
+        "2026/Q1",
+        "2026/Q2",
+        "2026/Q3",
+        "未来 6 个月",
+        "未来 12 个月",
+        "窗口",
+    ]
     found = [k for k in keywords if k in content]
     if len(found) < 2:
         return CheckStatus.WARN, f"时间窗口标注 {len(found)} 处(< 2)"
@@ -200,8 +265,16 @@ def check_12_time_window(content: str) -> tuple[CheckStatus, str]:
 
 def check_13_signals(content: str) -> tuple[CheckStatus, str]:
     """B13. 升降级信号齐全(各 ≥ 3)"""
-    up_m = re.search(r"(?:###?\s*(?:升级信号|α 兑现信号|alpha 兑现))[^\n]*\n(.*?)(?=\n###?\s|\n##\s|\Z)", content, re.DOTALL | re.MULTILINE)
-    down_m = re.search(r"(?:###?\s*(?:降级信号|判断需修正))[^\n]*\n(.*?)(?=\n###?\s|\n##\s|\Z)", content, re.DOTALL | re.MULTILINE)
+    up_m = re.search(
+        r"(?:###?\s*(?:升级信号|α 兑现信号|alpha 兑现))[^\n]*\n(.*?)(?=\n###?\s|\n##\s|\Z)",
+        content,
+        re.DOTALL | re.MULTILINE,
+    )
+    down_m = re.search(
+        r"(?:###?\s*(?:降级信号|判断需修正))[^\n]*\n(.*?)(?=\n###?\s|\n##\s|\Z)",
+        content,
+        re.DOTALL | re.MULTILINE,
+    )
     up_count = len(re.findall(r"🟢", up_m.group(1))) if up_m else 0
     down_count = len(re.findall(r"🔴", down_m.group(1))) if down_m else 0
     issues = []
@@ -335,6 +408,7 @@ def check_17b_zsxq_crawler(content: str) -> tuple[CheckStatus, str]:
 
 # ── Provider 实现 ──
 
+
 class DefaultComplianceProvider(ComplianceProvider):
     """默认合规检查提供者"""
 
@@ -371,7 +445,11 @@ class DefaultComplianceProvider(ComplianceProvider):
                 status, message = func(content)
                 checks.append(ComplianceCheck(code=code, name=name, status=status, message=message))
             except Exception as e:
-                checks.append(ComplianceCheck(code=code, name=name, status=CheckStatus.ERROR, message=f"检查异常: {e}"))
+                checks.append(
+                    ComplianceCheck(
+                        code=code, name=name, status=CheckStatus.ERROR, message=f"检查异常: {e}"
+                    )
+                )
 
         # 构建结果
         result = ComplianceResult(
@@ -387,7 +465,9 @@ class DefaultComplianceProvider(ComplianceProvider):
                 for c in checks
                 if c.status != CheckStatus.PASS
             ],
-            "risk_level": "high" if result.has_failures else ("medium" if result.warned_count > 0 else "low"),
+            "risk_level": "high"
+            if result.has_failures
+            else ("medium" if result.warned_count > 0 else "low"),
             "result": result,
             "summary": {
                 "total": len(checks),

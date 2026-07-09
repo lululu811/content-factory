@@ -5,8 +5,8 @@
 使用 TestClient 直接测试，避免代理问题。
 """
 
-from fastapi.testclient import TestClient
 from content_factory_server.app import app
+from fastapi.testclient import TestClient
 
 
 def test_api():
@@ -47,12 +47,12 @@ def test_api():
 
     # 3. 获取运行
     print("\n[3/4] 获取运行详情...")
-    run_id = run['run_id']
+    run_id = run["run_id"]
     response = client.get(f"/runs/{run_id}")
     assert response.status_code == 200
     run_detail = response.json()
-    assert run_detail['run_id'] == run_id
-    print(f"  ✓ 获取成功")
+    assert run_detail["run_id"] == run_id
+    print("  ✓ 获取成功")
 
     # 4. 列出所有运行
     print("\n[4/4] 列出所有运行...")
@@ -60,7 +60,7 @@ def test_api():
     assert response.status_code == 200
     runs_list = response.json()
     print(f"  总数: {runs_list['total']}")
-    print(f"  ✓ 列表获取成功")
+    print("  ✓ 列表获取成功")
 
     print("\n" + "=" * 70)
     print("✓ FastAPI 服务测试通过！")

@@ -4,11 +4,8 @@
 编排编辑组件，生成文章草稿。
 """
 
-from typing import Any
-from uuid import UUID
-
 from content_factory_core.events import DraftReady
-from content_factory_core.models import Draft, Editor, RunContext, Topic
+from content_factory_core.models import Draft, RunContext, Topic
 from content_factory_sdk.events import EventBus
 from content_factory_sdk.registry import ComponentRegistry
 

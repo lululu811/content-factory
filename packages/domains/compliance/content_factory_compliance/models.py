@@ -4,15 +4,16 @@
 定义合规检查的结果模型。
 """
 
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 
 
-class CheckStatus(str, Enum):
+class CheckStatus(StrEnum):
     """检查状态"""
+
     PASS = "PASS"
     WARN = "WARN"
     FAIL = "FAIL"
@@ -21,6 +22,7 @@ class CheckStatus(str, Enum):
 
 class ComplianceCheck(BaseModel):
     """单个合规检查项"""
+
     code: str  # 如 "A1", "B8"
     name: str  # 如 "标题长度", "免责声明"
     status: CheckStatus
@@ -30,6 +32,7 @@ class ComplianceCheck(BaseModel):
 
 class ComplianceResult(BaseModel):
     """合规检查整体结果"""
+
     draft_id: UUID
     article_slug: str
     checks: list[ComplianceCheck]

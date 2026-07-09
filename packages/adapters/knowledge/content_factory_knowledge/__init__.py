@@ -16,6 +16,7 @@ API 端点:
     POST /query     → {"query": str, ...} → answer + documents
     GET  /health    → status + document count
 """
+
 from __future__ import annotations
 
 import os
@@ -23,7 +24,6 @@ from typing import Any
 
 import httpx
 import structlog
-
 from content_factory_sdk.spi import SearchProvider
 
 logger = structlog.get_logger()
@@ -41,9 +41,7 @@ class KnowledgeSearchProvider(SearchProvider):
 
     # ---------- SearchProvider SPI ----------
 
-    async def search(
-        self, query: str, domain: str = "internal", limit: int = 10
-    ) -> dict[str, Any]:
+    async def search(self, query: str, domain: str = "internal", limit: int = 10) -> dict[str, Any]:
         """
         检索知识库
 
@@ -123,13 +121,9 @@ class KnowledgeSearchProvider(SearchProvider):
 
     # ---------- 内部工具 ----------
 
-    async def _request(
-        self, method: str, path: str, **kwargs
-    ) -> dict[str, Any]:
+    async def _request(self, method: str, path: str, **kwargs) -> dict[str, Any]:
         if self._client is None or self._client.is_closed:
-            self._client = httpx.AsyncClient(
-                base_url=self.base_url, timeout=30.0
-            )
+            self._client = httpx.AsyncClient(base_url=self.base_url, timeout=30.0)
         try:
             resp = await self._client.request(method, path, **kwargs)
             resp.raise_for_status()
@@ -140,9 +134,7 @@ class KnowledgeSearchProvider(SearchProvider):
                 url=self.base_url,
                 hint="请启动知识库 API: cd workspace/knowledge/knowledge-base && uvicorn api:app --port 8002",
             )
-            raise RuntimeError(
-                f"无法连接知识库服务 {self.base_url}。请先启动 RAG API。"
-            ) from e
+            raise RuntimeError(f"无法连接知识库服务 {self.base_url}。请先启动 RAG API。") from e
 
     @staticmethod
     def _extract_title(source: str) -> str:

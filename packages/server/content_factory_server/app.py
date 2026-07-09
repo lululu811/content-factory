@@ -8,30 +8,33 @@ FastAPI 应用
 - 可观测性（OpenTelemetry 降级模式）
 - 多租户隔离
 """
-import asyncio
+
 import time
-from typing import Optional
 from uuid import UUID, uuid4, uuid5
 
-from fastapi import FastAPI, HTTPException, Request
+from content_factory_core.models import RunContext, Topic
+from content_factory_core.tenant_manager import get_tenant_manager
+from content_factory_sdk import InMemoryEventBus, discover_components
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
-from content_factory_core.models import RunContext, Tenant, Topic
-from content_factory_core.tenant_manager import get_tenant_manager
-from content_factory_sdk import InMemoryEventBus, discover_components
-from content_factory_sdk.ab_testing import (
-    get_feedback_tracker,
-    parallel_draft,
-)
-from content_factory_topic import TopicProvider
-from content_factory_research import DefaultResearchProvider
-from content_factory_writing import WritingProvider
+try:
+    from content_factory_server.__init__ import __version__
+except Exception:
+    # 兼容直接 import 的场景(开发模式)
+    __version__ = "1.0.0"
 from content_factory_compliance import DefaultComplianceProvider
 from content_factory_image import ImageProvider
 from content_factory_publish import PublishProvider
+from content_factory_research import DefaultResearchProvider
+from content_factory_sdk.ab_testing import (
+    parallel_draft,
+)
+from content_factory_topic import TopicProvider
 from content_factory_tushare import TushareDataSource
+from content_factory_writing import WritingProvider
 
 from content_factory_server.observability import (
     get_metrics_snapshot,
@@ -51,19 +54,22 @@ def slug_to_editor_id(slug: str) -> UUID:
 
 class CreateRunRequest(BaseModel):
     """创建运行请求"""
+
     tenant_name: str
-    topic_title: Optional[str] = None
-    editor_slug: Optional[str] = None
+    topic_title: str | None = None
+    editor_slug: str | None = None
     ab_test: bool = False  # A/B 测试模式
 
 
 class TenantCreateRequest(BaseModel):
     """创建租户请求"""
+
     name: str
 
 
 class HealthResponse(BaseModel):
     """健康检查"""
+
     status: str
     version: str
     components: dict
@@ -74,7 +80,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="Content Factory API",
         description="投研内容 AI 编辑部操作系统",
-        version="0.3.0",
+        version=__version__,
     )
 
     app.add_middleware(
@@ -97,7 +103,7 @@ def create_app() -> FastAPI:
         registry = discover_components()
         return HealthResponse(
             status="healthy",
-            version="0.3.0",
+            version=__version__,
             components=registry.list_components(),
         )
 
@@ -212,6 +218,7 @@ def create_app() -> FastAPI:
             compliance_provider = DefaultComplianceProvider()
             # 创建临时 Draft 对象用于合规检查
             from content_factory_core.models import Draft
+
             temp_draft = Draft(
                 id=uuid4(),
                 tenant_id=tenant.id,
@@ -243,19 +250,25 @@ def create_app() -> FastAPI:
 
             # 存储运行记录
             run_id = uuid4()
-            tenant_manager.add_run(tenant.id, {
-                "run_id": str(run_id),
-                "topic_title": topic.title,
-                "editor_slug": editor_slug,
-                "status": "completed",
-                "duration_seconds": duration,
-            })
-            tenant_manager.add_article(tenant.id, {
-                "article_id": str(article.id),
-                "run_id": str(run_id),
-                "title": topic.title,
-                "url": publish_event.publish_url,
-            })
+            tenant_manager.add_run(
+                tenant.id,
+                {
+                    "run_id": str(run_id),
+                    "topic_title": topic.title,
+                    "editor_slug": editor_slug,
+                    "status": "completed",
+                    "duration_seconds": duration,
+                },
+            )
+            tenant_manager.add_article(
+                tenant.id,
+                {
+                    "article_id": str(article.id),
+                    "run_id": str(run_id),
+                    "title": topic.title,
+                    "url": publish_event.publish_url,
+                },
+            )
 
             response = {
                 "run_id": str(run_id),
@@ -273,14 +286,14 @@ def create_app() -> FastAPI:
             return response
 
     @app.get("/runs")
-    async def list_runs(tenant_id: Optional[str] = None):
+    async def list_runs(tenant_id: str | None = None):
         """列出运行记录"""
         if tenant_id:
             try:
                 tid = UUID(tenant_id)
                 runs = tenant_manager.get_runs(tid)
-            except Exception:
-                raise HTTPException(status_code=404, detail="Tenant not found")
+            except Exception as exc:
+                raise HTTPException(status_code=404, detail="Tenant not found") from exc
         else:
             runs = []
             for tenant in tenant_manager.list_tenants():
@@ -361,7 +374,7 @@ def create_app() -> FastAPI:
                 <div class="card">
                     <h2>📦 已注册组件</h2>
                     <div class="component-list">
-                        {''.join(f'<span class="component-tag">{k}: {len(v)}</span>' for k, v in components.items())}
+                        {"".join(f'<span class="component-tag">{k}: {len(v)}</span>' for k, v in components.items())}
                     </div>
                 </div>
 
@@ -376,7 +389,7 @@ def create_app() -> FastAPI:
                             </tr>
                         </thead>
                         <tbody>
-                            {''.join(f'<tr><td>{t.name}</td><td>{t.slug}</td><td>{len(tenant_manager.get_runs(t.id))}</td></tr>' for t in tenants) or '<tr><td colspan="3" style="text-align:center;color:#999;">暂无租户</td></tr>'}
+                            {"".join(f"<tr><td>{t.name}</td><td>{t.slug}</td><td>{len(tenant_manager.get_runs(t.id))}</td></tr>" for t in tenants) or '<tr><td colspan="3" style="text-align:center;color:#999;">暂无租户</td></tr>'}
                         </tbody>
                     </table>
                 </div>
@@ -400,7 +413,28 @@ def create_app() -> FastAPI:
 
     @app.get("/metrics")
     async def metrics_endpoint():
-        """指标快照"""
+        """
+        指标端点 - 双格式输出:
+          - 后端装了 prometheus_client: 输出 Prometheus exposition format
+            (text/plain; version=0.0.4),可被 Prometheus / VictoriaMetrics 直接抓取
+          - 否则回退到 JSON 快照(向后兼容)
+
+        用 curl 验证:
+          curl -s http://localhost:8000/metrics | head -20
+        """
+        from content_factory_server.observability import (
+            PROMETHEUS_AVAILABLE,
+            metrics_content_type,
+            render_metrics_prometheus,
+        )
+
+        if PROMETHEUS_AVAILABLE:
+            from fastapi.responses import Response
+
+            return Response(
+                content=render_metrics_prometheus(),
+                media_type=metrics_content_type(),
+            )
         return get_metrics_snapshot()
 
     return app

@@ -1,6 +1,6 @@
 [project]
 name = "content-factory-datapro"
-version = "0.3.0"
+version = "1.0.0"
 description = "dataPro 专业数据检索适配器 - 投研内容 AI 编辑部"
 requires-python = ">=3.11"
 readme = "README.md"

@@ -18,7 +18,7 @@ async def main():
     registry = discover_components()
     components = registry.list_components()
 
-    print(f"发现的组件:")
+    print("发现的组件:")
     for category, names in components.items():
         print(f"  {category}: {names}")
 
@@ -67,14 +67,14 @@ async def main():
         metadata={"slug": "rare-earth-analysis"},
     )
 
-    print(f"草稿内容预览 (前 100 字):")
+    print("草稿内容预览 (前 100 字):")
     print(draft.content[:100] + "...")
     print()
 
     # 执行合规检查
     result = await provider.check(draft)
 
-    print(f"检查结果:")
+    print("检查结果:")
     print(f"  是否通过: {result['passed']}")
     print(f"  风险等级: {result['risk_level']}")
     print(f"  问题数: {len(result['issues'])}")

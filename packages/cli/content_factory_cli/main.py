@@ -4,10 +4,6 @@ CLI 主程序
 提供命令行接口，调用 API 服务。
 """
 
-import asyncio
-import json
-from typing import Optional
-
 import httpx
 import typer
 from rich.console import Console
@@ -43,14 +39,14 @@ def health(
                 console.print(f"  {category}: {', '.join(names) if names else '无'}")
     except Exception as e:
         console.print(f"[red]✗[/red] 服务不可用: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
 @app.command()
 def create(
     tenant_name: str = typer.Argument(..., help="租户名称"),
-    topic_title: Optional[str] = typer.Option(None, "--topic", "-t", help="选题标题"),
-    editor_slug: Optional[str] = typer.Option(None, "--editor", "-e", help="编辑 slug"),
+    topic_title: str | None = typer.Option(None, "--topic", "-t", help="选题标题"),
+    editor_slug: str | None = typer.Option(None, "--editor", "-e", help="编辑 slug"),
     api_url: str = typer.Option(DEFAULT_API_URL, "--api-url", "-u", help="API 服务地址"),
 ):
     """创建新的文章生产运行"""
@@ -79,7 +75,7 @@ def create(
                 console.print(f"发布 URL: {data['publish_url']}")
     except Exception as e:
         console.print(f"[red]✗ 创建失败: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
 @app.command(name="list")
@@ -118,7 +114,7 @@ def list_runs(
             console.print(table)
     except Exception as e:
         console.print(f"[red]✗ 获取失败: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
 @app.command()
@@ -143,7 +139,7 @@ def status(
                 console.print(f"[cyan]发布 URL:[/cyan] {data['publish_url']}")
     except Exception as e:
         console.print(f"[red]✗ 获取失败: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
 @app.command()
@@ -167,7 +163,7 @@ def components(
             console.print(table)
     except Exception as e:
         console.print(f"[red]✗ 获取失败: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
 if __name__ == "__main__":

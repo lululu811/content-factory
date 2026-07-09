@@ -28,6 +28,7 @@ class TenantManager:
     def create_tenant(self, name: str, slug: str) -> Tenant:
         """创建租户"""
         import uuid
+
         tenant = Tenant(id=uuid.uuid4(), name=name, slug=slug)
         self._tenants[tenant.id] = tenant
         self._tenant_data[tenant.id] = {
@@ -96,11 +97,10 @@ class PostgreSQLTenantManager(TenantManager):
         try:
             import psycopg
             from psycopg.rows import dict_row
-        except ImportError:
+        except ImportError as exc:
             raise RuntimeError(
-                "PostgreSQL 后端需要安装 psycopg。"
-                "运行: pip install 'psycopg[binary]'"
-            )
+                "PostgreSQL 后端需要安装 psycopg。运行: pip install 'psycopg[binary]'"
+            ) from exc
 
         self._database_url = database_url or __import__("os").getenv("CF_DATABASE_URL")
         if not self._database_url:
@@ -124,10 +124,9 @@ class PostgreSQLTenantManager(TenantManager):
     def _ensure_schema(self, slug: str) -> None:
         """确保租户 schema 存在"""
         schema_name = f"tenant_{slug.replace('-', '_')}"
-        with self._get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(f"CREATE SCHEMA IF NOT EXISTS {schema_name}")
-                cur.execute(f"""
+        with self._get_connection() as conn, conn.cursor() as cur:
+            cur.execute(f"CREATE SCHEMA IF NOT EXISTS {schema_name}")
+            cur.execute(f"""
                     CREATE TABLE IF NOT EXISTS {schema_name}.runs (
                         run_id UUID PRIMARY KEY,
                         topic_title TEXT NOT NULL,
@@ -137,7 +136,7 @@ class PostgreSQLTenantManager(TenantManager):
                         created_at TIMESTAMPTZ DEFAULT NOW()
                     )
                 """)
-                cur.execute(f"""
+            cur.execute(f"""
                     CREATE TABLE IF NOT EXISTS {schema_name}.articles (
                         article_id UUID PRIMARY KEY,
                         run_id UUID REFERENCES {schema_name}.runs(run_id),
@@ -171,22 +170,21 @@ class PostgreSQLTenantManager(TenantManager):
             return
         try:
             schema = f"tenant_{tenant.slug.replace('-', '_')}"
-            with self._get_connection() as conn:
-                with conn.cursor() as cur:
-                    cur.execute(
-                        f"""
+            with self._get_connection() as conn, conn.cursor() as cur:
+                cur.execute(
+                    f"""
                         INSERT INTO {schema}.runs
                         (run_id, topic_title, editor_slug, status, duration_seconds)
                         VALUES (%s, %s, %s, %s, %s)
                         """,
-                        (
-                            run_data["run_id"],
-                            run_data["topic_title"],
-                            run_data["editor_slug"],
-                            run_data["status"],
-                            run_data.get("duration_seconds"),
-                        ),
-                    )
+                    (
+                        run_data["run_id"],
+                        run_data["topic_title"],
+                        run_data["editor_slug"],
+                        run_data["status"],
+                        run_data.get("duration_seconds"),
+                    ),
+                )
         except Exception as e:
             logger.warning("postgres_write_fallback", error=str(e))
 
@@ -198,21 +196,20 @@ class PostgreSQLTenantManager(TenantManager):
             return
         try:
             schema = f"tenant_{tenant.slug.replace('-', '_')}"
-            with self._get_connection() as conn:
-                with conn.cursor() as cur:
-                    cur.execute(
-                        f"""
+            with self._get_connection() as conn, conn.cursor() as cur:
+                cur.execute(
+                    f"""
                         INSERT INTO {schema}.articles
                         (article_id, run_id, title, url)
                         VALUES (%s, %s, %s, %s)
                         """,
-                        (
-                            article_data["article_id"],
-                            article_data.get("run_id"),
-                            article_data["title"],
-                            article_data.get("url"),
-                        ),
-                    )
+                    (
+                        article_data["article_id"],
+                        article_data.get("run_id"),
+                        article_data["title"],
+                        article_data.get("url"),
+                    ),
+                )
         except Exception as e:
             logger.warning("postgres_write_fallback", error=str(e))
 

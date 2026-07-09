@@ -5,7 +5,7 @@
 """
 
 from importlib.metadata import entry_points
-from typing import Any, TypeVar
+from typing import TypeVar
 
 import structlog
 
@@ -64,9 +64,7 @@ class ComponentRegistry:
         self._publishers[name] = provider
         logger.info("registered_publisher", name=name)
 
-    def register_content_generator(
-        self, name: str, provider: ContentGeneratorProvider
-    ) -> None:
+    def register_content_generator(self, name: str, provider: ContentGeneratorProvider) -> None:
         """注册内容生成组件（图片/视频/音乐/语音）"""
         self._content_generators[name] = provider
         logger.info("registered_content_generator", name=name)

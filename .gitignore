@@ -120,3 +120,14 @@ build/
 /site/
 .venv/
 *.egg-info/
+
+# ── v0.2 老脚本(已被 v0.3 架构取代,本地保留 / 不进 git)──
+bin/
+scripts/
+templates/
+
+# ── 临时 smoke 脚本(股票代码 ad-hoc 测试产物)──
+/_smoke_*.py
+
+# ── Session/state cache(本地工具产物,不入库)──
+.omc/

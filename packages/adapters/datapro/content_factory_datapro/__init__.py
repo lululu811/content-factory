@@ -16,7 +16,6 @@ from typing import Any
 
 import httpx
 import structlog
-
 from content_factory_sdk.spi import SearchProvider
 
 logger = structlog.get_logger()
@@ -72,9 +71,7 @@ class DataProSearchProvider(SearchProvider):
     ) -> dict[str, Any]:
         """执行专业搜索"""
         if domain not in self.supported_domains():
-            raise ValueError(
-                f"Unsupported domain: {domain}. Supported: {self.supported_domains()}"
-            )
+            raise ValueError(f"Unsupported domain: {domain}. Supported: {self.supported_domains()}")
 
         if self.is_mock:
             return {
@@ -82,7 +79,7 @@ class DataProSearchProvider(SearchProvider):
                 "query": query,
                 "results": [
                     {
-                        "title": f"[Mock] {domain} 结果 {i+1}: {query}",
+                        "title": f"[Mock] {domain} 结果 {i + 1}: {query}",
                         "content": f"这是关于 {query} 的 mock {domain} 内容",
                         "source": "datapro-mock",
                         "url": f"https://mock.datapro/{domain}/{i}",

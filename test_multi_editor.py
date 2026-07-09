@@ -37,7 +37,7 @@ async def main():
         draft1 = await yan_su.draft_article(topic, context)
         print(f"字数: {len(draft1.content)}")
         print(f"元数据: {draft1.metadata.get('style')}")
-        print(f"\n内容预览:")
+        print("\n内容预览:")
         print("-" * 70)
         print(draft1.content[:500] + "...")
     else:
@@ -52,7 +52,7 @@ async def main():
         draft2 = await xi_li.draft_article(topic, context)
         print(f"字数: {len(draft2.content)}")
         print(f"元数据: {draft2.metadata.get('style')}")
-        print(f"\n内容预览:")
+        print("\n内容预览:")
         print("-" * 70)
         print(draft2.content[:500] + "...")
     else:
@@ -67,8 +67,12 @@ async def main():
         print(f"犀利派风格指纹: {xi_li.style_fingerprint().get('tone')}")
         print(f"严肃派正式度: {yan_su.style_fingerprint().get('formality')}")
         print(f"犀利派正式度: {xi_li.style_fingerprint().get('formality')}")
-        print(f"严肃派风险容忍: {yan_su.editor.preferences.get('risk_tolerance') if hasattr(yan_su, 'editor') else 'N/A'}")
-        print(f"犀利派风险容忍: {xi_li.editor.preferences.get('risk_tolerance') if hasattr(xi_li, 'editor') else 'N/A'}")
+        print(
+            f"严肃派风险容忍: {yan_su.editor.preferences.get('risk_tolerance') if hasattr(yan_su, 'editor') else 'N/A'}"
+        )
+        print(
+            f"犀利派风险容忍: {xi_li.editor.preferences.get('risk_tolerance') if hasattr(xi_li, 'editor') else 'N/A'}"
+        )
 
     print("\n" + "=" * 70)
     print("✓ 多编辑风格测试完成")

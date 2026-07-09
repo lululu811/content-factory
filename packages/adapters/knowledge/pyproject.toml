@@ -1,6 +1,6 @@
 [project]
 name = "content-factory-knowledge"
-version = "0.3.0"
+version = "1.0.0"
 description = "RAG 知识库检索适配器 - 投研内容 AI 编辑部"
 requires-python = ">=3.11"
 readme = "README.md"

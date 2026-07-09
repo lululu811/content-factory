@@ -1,6 +1,6 @@
 [project]
 name = "content-factory-cninfo"
-version = "0.3.0"
+version = "1.0.0"
 description = "巨潮资讯数据源适配器 - 投研内容 AI 编辑部"
 requires-python = ">=3.11"
 readme = "README.md"

@@ -3,15 +3,14 @@ A/B 测试与数据回流
 
 支持多编辑并行产出和风格选择。
 """
-from typing import Optional
+
 from uuid import UUID
 
-from content_factory_core.models import Editor, Topic, RunContext
-from content_factory_core.events import DomainEvent
+import structlog
+from content_factory_core.models import Editor, RunContext, Topic
+
 from content_factory_sdk import EventBus
 from content_factory_sdk.registry import ComponentRegistry
-
-import structlog
 
 logger = structlog.get_logger()
 
@@ -51,7 +50,7 @@ def extract_fingerprint(editor: Editor) -> StyleFingerprint:
 def match_editor_for_topic(
     topic: Topic,
     editors: list[Editor],
-    preference: Optional[dict] = None,
+    preference: dict | None = None,
 ) -> list[tuple[Editor, float]]:
     """为话题匹配最佳编辑（按匹配度排序）"""
     preference = preference or {}
@@ -86,22 +85,26 @@ async def parallel_draft(
     drafts = await asyncio.gather(*tasks, return_exceptions=True)
 
     results = []
-    for slug, draft in zip(editor_slugs, drafts):
+    for slug, draft in zip(editor_slugs, drafts, strict=False):
         if isinstance(draft, Exception):
             logger.error("parallel_draft_failed", editor=slug, error=str(draft))
-            results.append({
-                "editor": slug,
-                "status": "failed",
-                "error": str(draft),
-            })
+            results.append(
+                {
+                    "editor": slug,
+                    "status": "failed",
+                    "error": str(draft),
+                }
+            )
         else:
-            results.append({
-                "editor": slug,
-                "status": "success",
-                "draft_id": str(draft.id),
-                "content": draft.content,
-                "length": len(draft.content),
-            })
+            results.append(
+                {
+                    "editor": slug,
+                    "status": "success",
+                    "draft_id": str(draft.id),
+                    "content": draft.content,
+                    "length": len(draft.content),
+                }
+            )
 
     return results
 
@@ -124,7 +127,7 @@ class FeedbackTracker:
         }
         logger.info("feedback_recorded", article_id=str(article_id), metrics=metrics)
 
-    def get_feedback(self, article_id: UUID) -> Optional[dict]:
+    def get_feedback(self, article_id: UUID) -> dict | None:
         """获取文章反馈"""
         return self._feedback.get(str(article_id))
 

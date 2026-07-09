@@ -8,7 +8,6 @@ import os
 from typing import Any
 
 import structlog
-
 from content_factory_sdk.spi import DataSourceProvider
 
 logger = structlog.get_logger()
@@ -33,9 +32,7 @@ class CninfoDataSource(DataSourceProvider):
         """巨潮不提供新闻，返回空"""
         return []
 
-    async def fetch_announcement(
-        self, symbol: str, days: int = 30
-    ) -> list[dict[str, Any]]:
+    async def fetch_announcement(self, symbol: str, days: int = 30) -> list[dict[str, Any]]:
         """获取公告"""
         # 实际实现需要调用巨潮 API
         # 这里提供 mock 实现

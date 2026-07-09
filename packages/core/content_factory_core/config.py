@@ -4,14 +4,13 @@
 使用 pydantic-settings 管理配置，支持环境变量覆盖。
 """
 
-from typing import Optional
-
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     """全局配置"""
+
     model_config = SettingsConfigDict(
         env_prefix="CF_",
         env_file=".env",
@@ -36,7 +35,7 @@ class Settings(BaseSettings):
     temporal_namespace: str = "content-factory"
 
     # 多租户
-    default_tenant_id: Optional[str] = None
+    default_tenant_id: str | None = None
 
     # 日志
     log_level: str = "INFO"
@@ -45,6 +44,7 @@ class Settings(BaseSettings):
 
 class TenantSettings(BaseSettings):
     """租户级配置（可从数据库加载）"""
+
     tenant_id: str
     max_concurrent_runs: int = 5
     allowed_editors: list[str] = Field(default_factory=list)

@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 
 class DomainEvent(BaseModel):
     """领域事件基类"""
+
     event_id: UUID = Field(default_factory=uuid4)
     event_type: str
     tenant_id: UUID
@@ -24,12 +25,14 @@ class DomainEvent(BaseModel):
 
 class TopicApproved(DomainEvent):
     """选题已批准"""
+
     event_type: Literal["topic.approved"] = "topic.approved"
     topic_id: UUID
 
 
 class ResearchCompleted(DomainEvent):
     """研究完成"""
+
     event_type: Literal["research.completed"] = "research.completed"
     topic_id: UUID
     research_data: dict[str, Any]
@@ -37,6 +40,7 @@ class ResearchCompleted(DomainEvent):
 
 class DraftReady(DomainEvent):
     """草稿就绪"""
+
     event_type: Literal["draft.ready"] = "draft.ready"
     topic_id: UUID
     editor_id: UUID
@@ -45,6 +49,7 @@ class DraftReady(DomainEvent):
 
 class CompliancePassed(DomainEvent):
     """合规通过"""
+
     event_type: Literal["compliance.passed"] = "compliance.passed"
     draft_id: UUID
     article_id: UUID
@@ -52,6 +57,7 @@ class CompliancePassed(DomainEvent):
 
 class ArticlePublished(DomainEvent):
     """文章已发布"""
+
     event_type: Literal["article.published"] = "article.published"
     article_id: UUID
     publish_url: str

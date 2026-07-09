@@ -1,4 +1,3 @@
-import pytest
 #!/usr/bin/env python3
 """
 端到端测试：完整工作流验证
@@ -9,15 +8,16 @@ import pytest
 import asyncio
 from uuid import uuid4
 
-from content_factory_core.models import RunContext, Tenant, Topic
-from content_factory_sdk import InMemoryEventBus, discover_components
-from content_factory_topic import TopicProvider
-from content_factory_research import DefaultResearchProvider
-from content_factory_writing import WritingProvider
+import pytest
 from content_factory_compliance import DefaultComplianceProvider
+from content_factory_core.models import RunContext, Tenant
 from content_factory_image import ImageProvider
 from content_factory_publish import PublishProvider
+from content_factory_research import DefaultResearchProvider
+from content_factory_sdk import InMemoryEventBus, discover_components
+from content_factory_topic import TopicProvider
 from content_factory_tushare import TushareDataSource
+from content_factory_writing import WritingProvider
 
 
 @pytest.mark.asyncio
@@ -33,7 +33,7 @@ async def test_end_to_end():
     registry = discover_components()
 
     components = registry.list_components()
-    print(f"  发现的组件:")
+    print("  发现的组件:")
     for category, names in components.items():
         print(f"    {category}: {names}")
 
@@ -58,7 +58,7 @@ async def test_end_to_end():
 
     # 批准选题
     await topic_provider.approve_topic(selected_topic, context)
-    print(f"  ✓ 选题已批准")
+    print("  ✓ 选题已批准")
 
     # 4. 研究阶段
     print("\n[4/7] 研究阶段...")
@@ -68,7 +68,7 @@ async def test_end_to_end():
         event_bus=event_bus,
     )
     research_event = await research_provider.run_research(selected_topic, context)
-    print(f"  ✓ 研究完成")
+    print("  ✓ 研究完成")
     print(f"    数据源: {research_event.research_data.get('sources', [])}")
     print(f"    新闻数: {len(research_event.research_data.get('news', []))}")
 
@@ -79,7 +79,7 @@ async def test_end_to_end():
     print(f"  选择编辑: {editor_slug}")
 
     draft = await writing_provider.write_article(selected_topic, editor_slug, context)
-    print(f"  ✓ 草稿已生成")
+    print("  ✓ 草稿已生成")
     print(f"    字数: {len(draft.content)}")
     print(f"    元数据: {draft.metadata}")
 
@@ -87,25 +87,27 @@ async def test_end_to_end():
     print("\n[6/7] 合规检查...")
     compliance_provider = DefaultComplianceProvider()
     compliance_result = await compliance_provider.check(draft)
-    print(f"  合规结果:")
+    print("  合规结果:")
     print(f"    通过: {compliance_result['passed']}")
     print(f"    风险等级: {compliance_result['risk_level']}")
     print(f"    问题数: {len(compliance_result['issues'])}")
 
-    if compliance_result['issues']:
-        print(f"    问题详情:")
-        for issue in compliance_result['issues'][:3]:
+    if compliance_result["issues"]:
+        print("    问题详情:")
+        for issue in compliance_result["issues"][:3]:
             print(f"      - [{issue['code']}] {issue['name']}: {issue['message']}")
 
-    # 如果合规通过，批准草稿
-    if compliance_result['passed']:
-        article = await compliance_provider.approve(draft)
-        print(f"  ✓ 草稿已批准，生成终稿")
-    else:
-        print(f"  ⚠ 合规未通过，无法发布")
-        # 为了测试，我们强制创建一个文章
-        article = await compliance_provider.approve(draft)
-        print(f"  ⚠ 强制批准（仅用于测试）")
+    # 合规必须通过：未通过则阻断(替代"强制批准"逻辑)
+    if not compliance_result["passed"]:
+        pytest.fail(
+            f"合规检查未通过，发布阻断。"
+            f" 风险等级: {compliance_result['risk_level']}, "
+            f" 问题数: {len(compliance_result['issues'])}。"
+            f" 必须修复所有 issue 后才能发布。"
+        )
+
+    article = await compliance_provider.approve(draft)
+    print("  ✓ 草稿已批准，生成终稿")
 
     # 7. 配图和发布
     print("\n[7/7] 配图和发布...")
@@ -116,7 +118,7 @@ async def test_end_to_end():
     article.images = images
     publish_provider = PublishProvider(event_bus=event_bus)
     publish_event = await publish_provider.publish(article)
-    print(f"  ✓ 文章已发布")
+    print("  ✓ 文章已发布")
     print(f"    URL: {publish_event.publish_url}")
 
     # 8. 验证事件流
@@ -136,7 +138,7 @@ async def test_end_to_end():
   选题: {selected_topic.title}
   编辑: {editor_slug}
   草稿字数: {len(draft.content)}
-  合规结果: {'通过' if compliance_result['passed'] else '未通过'}
+  合规结果: {"通过" if compliance_result["passed"] else "未通过"}
   配图数: {len(images)}
   发布 URL: {publish_event.publish_url}
   事件数: {len(event_history)}

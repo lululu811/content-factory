@@ -5,8 +5,8 @@
 使用 FastAPI TestClient 测试 CLI 逻辑。
 """
 
-from fastapi.testclient import TestClient
 from content_factory_server.app import app
+from fastapi.testclient import TestClient
 
 
 def test_cli_commands():
@@ -24,20 +24,23 @@ def test_cli_commands():
     data = response.json()
     print(f"  状态: {data['status']}")
     print(f"  版本: {data['version']}")
-    print(f"  ✓ 健康检查通过")
+    print("  ✓ 健康检查通过")
 
     # 2. create
     print("\n[2/4] cf create 测试租户 --topic 稀土分析")
-    response = client.post("/runs", json={
-        "tenant_name": "测试租户",
-        "topic_title": "稀土分析",
-    })
+    response = client.post(
+        "/runs",
+        json={
+            "tenant_name": "测试租户",
+            "topic_title": "稀土分析",
+        },
+    )
     assert response.status_code == 200
     run = response.json()
     print(f"  Run ID: {run['run_id']}")
     print(f"  选题: {run['topic_title']}")
     print(f"  编辑: {run['editor_slug']}")
-    print(f"  ✓ 创建运行成功")
+    print("  ✓ 创建运行成功")
 
     # 3. list
     print("\n[3/4] cf list")
@@ -45,26 +48,26 @@ def test_cli_commands():
     assert response.status_code == 200
     runs = response.json()
     print(f"  总数: {runs['total']}")
-    print(f"  ✓ 列出运行成功")
+    print("  ✓ 列出运行成功")
 
     # 4. status
     print("\n[4/4] cf status <run_id>")
-    run_id = run['run_id']
+    run_id = run["run_id"]
     response = client.get(f"/runs/{run_id}")
     assert response.status_code == 200
     run_detail = response.json()
     print(f"  Run ID: {run_detail['run_id']}")
     print(f"  状态: {run_detail['status']}")
-    print(f"  ✓ 获取运行详情成功")
+    print("  ✓ 获取运行详情成功")
 
     # 5. components
     print("\n[5/4] cf components")
     response = client.get("/health")
     data = response.json()
-    print(f"  组件类别:")
-    for category, names in data['components'].items():
+    print("  组件类别:")
+    for category, names in data["components"].items():
         print(f"    {category}: {', '.join(names) if names else '无'}")
-    print(f"  ✓ 列出组件成功")
+    print("  ✓ 列出组件成功")
 
     print("\n" + "=" * 70)
     print("✓ CLI 命令测试通过！")

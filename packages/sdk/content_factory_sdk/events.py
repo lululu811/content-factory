@@ -4,11 +4,11 @@
 组件间通过事件总线通信，实现解耦。
 """
 
-from typing import Any, Callable
 from collections import defaultdict
+from collections.abc import Callable
+from typing import Any
 
 import structlog
-
 from content_factory_core.events import DomainEvent
 
 logger = structlog.get_logger()
@@ -28,9 +28,7 @@ class EventBus:
         """订阅事件"""
         raise NotImplementedError
 
-    async def wait_for(
-        self, event_type: str, timeout: float | None = None
-    ) -> DomainEvent:
+    async def wait_for(self, event_type: str, timeout: float | None = None) -> DomainEvent:
         """等待特定事件（用于 workflow 人工审批等场景）"""
         raise NotImplementedError
 
@@ -64,9 +62,7 @@ class InMemoryEventBus(EventBus):
         self._handlers[event_type].append(handler)
         logger.info("event_subscribed", event_type=event_type, handler=handler.__name__)
 
-    async def wait_for(
-        self, event_type: str, timeout: float | None = None
-    ) -> DomainEvent:
+    async def wait_for(self, event_type: str, timeout: float | None = None) -> DomainEvent:
         """
         等待特定事件
         注意：内存实现不支持真正的等待，只是从历史中查找
@@ -86,4 +82,5 @@ class InMemoryEventBus(EventBus):
 def _is_async(func: Callable) -> bool:
     """判断函数是否是 async"""
     import inspect
+
     return inspect.iscoroutinefunction(func)

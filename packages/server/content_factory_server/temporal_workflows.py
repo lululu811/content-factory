@@ -7,23 +7,26 @@ Temporal Workflow 定义
   - 人工审批（Query + Signal）
   - 长时间运行（Timeouts）
 """
+
 import asyncio
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import timedelta
-from typing import Optional
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 try:
     from temporalio import activity, workflow
     from temporalio.common import RetryPolicy
+
     TEMPORAL_AVAILABLE = True
 except ImportError:
     TEMPORAL_AVAILABLE = False
 
     class _FakeDefn:
         """Fallback decorator with .defn attribute"""
+
         def __call__(self, fn):
             return fn
+
         @property
         def defn(self):
             return self
@@ -39,19 +42,21 @@ except ImportError:
 @dataclass
 class ArticleProductionInput:
     """工作流输入"""
+
     tenant_id: str
     topic_title: str
-    editor_slug: Optional[str] = None
+    editor_slug: str | None = None
     require_manual_approval: bool = False
 
 
 @dataclass
 class ArticleProductionOutput:
     """工作流输出"""
+
     run_id: str
-    article_url: Optional[str] = None
+    article_url: str | None = None
     status: str = "pending"
-    error: Optional[str] = None
+    error: str | None = None
 
 
 # ============== Activities ==============
@@ -171,7 +176,7 @@ if TEMPORAL_AVAILABLE:
 
                 # 2. 研究
                 self._current_activity = "research"
-                research_id = await workflow.execute_activity(
+                await workflow.execute_activity(
                     run_research,
                     topic_id,
                     start_to_close_timeout=timedelta(minutes=30),
@@ -284,6 +289,4 @@ else:
         """占位：需要安装 temporalio"""
 
         def __init__(self, *args, **kwargs):
-            raise RuntimeError(
-                "temporalio 未安装。运行: pip install temporalio"
-            )
+            raise RuntimeError("temporalio 未安装。运行: pip install temporalio")
