@@ -103,13 +103,19 @@ jobs:
       - name: Install build tooling
         run: uv sync --all-packages --dev --extra observability && uv pip install build twine
 
-      - name: Build sdist + wheel
-        run: uv run python -m build
+      # monorepo root 不直接 build wheel(root 没有可发布包)。
+      # 验证代表性发布包 packages/server 的 sdist + wheel 能正常输出,
+      # 这是 release 流程的核心检查(重复对所有 packages/* 也行,CI 留给后续)。
+      - name: Build packages/server (representative release target)
+        run: |
+          cd packages/server
+          uv run python -m build
+          ls -la dist/
 
       - name: Verify build artifacts
         run: |
-          ls -la dist/
-          uv run twine check dist/*
+          ls -la packages/server/dist/
+          uv run twine check packages/server/dist/*
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
