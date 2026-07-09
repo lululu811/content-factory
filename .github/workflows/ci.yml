@@ -40,7 +40,7 @@ jobs:
         run: uv run ruff format --check packages test_*.py
 
       - name: mypy (cninfo strict)
-        run: uv run mypy packages/adapters/cninfo/src/content_factory_cninfo
+        run: uv run mypy packages/adapters/cninfo/content_factory_cninfo
 
   # ── Test Matrix ─────────────────────────────────────────────
   test:
